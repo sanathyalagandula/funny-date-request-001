@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script type="text/javascript"
-  src="https://cdn.emailjs.com/dist/email.min.js"></script>
-<script>
-  (function(){
-    emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your Public Key
-  })();
-</script>
+  <!-- Step 3: EmailJS client + init -->
+  <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    (function () {
+      // Replace with your EmailJS Public Key
+      emailjs.init("YOUR_PUBLIC_KEY");
+    })();
+  </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -398,6 +399,7 @@
       modalCaption.textContent = caption;
       modal.classList.remove("hidden");
 
+      // Step 5: send the notification email via EmailJS
       sendNotification(from, choice, caption);
     }
 
@@ -405,24 +407,27 @@
       modal.classList.add("hidden");
     }
 
+    // Step 4: EmailJS-based notification
     function sendNotification(fromName, choice, caption) {
-      try {
-        fetch("/api/notify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            from: fromName || "Anonymous",
-            choice,
-            caption,
-            url: window.location.href
-          })
-        }).catch(() => {});
-      } catch (e) {}
+      // Adjust these to match your EmailJS template variables
+      const templateParams = {
+        email: "your-recipient@example.com",   // who should receive the notification
+        from_name: fromName || "Someone",
+        plan: choice,
+        message: caption
+      };
+
+      emailjs
+        .send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", templateParams)
+        .then(function (response) {
+          console.log("Email sent", response.status, response.text);
+        })
+        .catch(function (error) {
+          console.error("Email failed", error);
+        });
     }
 
     initializeInvite();
   </script>
 </body>
 </html>
-<!-- deployment trigger -->
-
