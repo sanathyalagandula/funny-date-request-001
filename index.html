@@ -1,18 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Step 3: EmailJS client + init -->
-  <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
+    // EmailJS configuration
+    const EMAILJS_PUBLIC_KEY  = "eJCVWmle6MBSpyYNB";
+    const EMAILJS_SERVICE_ID  = "service_wj2hlc4";
+    const EMAILJS_TEMPLATE_ID = "template_s9mb1r1";
+    const RECIPIENT_EMAIL     = "vns.kumar20@gmail.com";
+
     (function () {
-      // Replace with your EmailJS Public Key
-      emailjs.init("YOUR_PUBLIC_KEY");
+      emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
     })();
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fun Date Invite</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -31,12 +37,21 @@
       padding: 40px 10px;
     }
 
+    .layout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      align-items: stretch;
+      justify-content: center;
+      max-width: 1400px;
+      width: 100%;
+    }
+
     .card {
       background: #ffffff;
       border-radius: 22px;
       padding: 32px 26px 36px;
       box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
-      display: inline-block;
       max-width: 640px;
       width: 100%;
     }
@@ -181,28 +196,38 @@
     .modal-content p {
       margin: 4px 0;
     }
+
+    @media (max-width: 900px) {
+      .layout {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="card" id="inviteCard">
-    <h2>Generate Your Dating Invite</h2>
-    <p>Enter your name:</p>
-    <input id="nameInput" placeholder="Your Name" />
-    <br />
-    <button class="yes" onclick="generateLink()">Generate Invite Link</button>
-    <div class="link-box hidden" id="linkBox"></div>
-  </div>
-
-  <div class="card hidden" id="crushCard">
-    <h2 id="inviteTitle"></h2>
-    <h3 id="question">Would you like to go on a date with me?</h3>
-    <div id="buttons">
-      <button class="yes" onclick="handleYes()">Yes</button>
-      <button class="no" onclick="handleNo()">No</button>
+  <div class="layout">
+    <!-- Generator card -->
+    <div class="card" id="inviteCard">
+      <h2>Generate Your Dating Invite</h2>
+      <p>Enter your name:</p>
+      <input id="nameInput" placeholder="Your Name" />
+      <br />
+      <button class="yes" onclick="generateLink()">Generate Invite Link</button>
+      <div class="link-box hidden" id="linkBox"></div>
     </div>
-    <div class="options hidden" id="options"></div>
-    <div class="suboptions hidden" id="suboptions"></div>
-    <div class="final-box hidden" id="finalBox"></div>
+
+    <!-- Crush view card -->
+    <div class="card hidden" id="crushCard">
+      <h2 id="inviteTitle"></h2>
+      <h3 id="question">Would you like to go on a date with me?</h3>
+      <div id="buttons">
+        <button class="yes" onclick="handleYes()">Yes</button>
+        <button class="no" onclick="handleNo()">No</button>
+      </div>
+      <div class="options hidden" id="options"></div>
+      <div class="suboptions hidden" id="suboptions"></div>
+      <div class="final-box hidden" id="finalBox"></div>
+    </div>
   </div>
 
   <!-- Modal popup -->
@@ -218,30 +243,36 @@
   </div>
 
   <script>
+    // Read query param
     const params = new URLSearchParams(window.location.search);
     const from = params.get("from");
 
-    const inviteCard = document.getElementById("inviteCard");
-    const crushCard = document.getElementById("crushCard");
-    const inviteTitle = document.getElementById("inviteTitle");
-    const questionEl = document.getElementById("question");
-    const optionsEl = document.getElementById("options");
+    const inviteCard   = document.getElementById("inviteCard");
+    const crushCard    = document.getElementById("crushCard");
+    const inviteTitle  = document.getElementById("inviteTitle");
+    const questionEl   = document.getElementById("question");
+    const optionsEl    = document.getElementById("options");
     const subOptionsEl = document.getElementById("suboptions");
-    const finalBox = document.getElementById("finalBox");
+    const finalBox     = document.getElementById("finalBox");
 
-    const modal = document.getElementById("confirmModal");
-    const modalFrom = document.getElementById("modalFrom");
-    const modalPlan = document.getElementById("modalPlan");
+    const modal        = document.getElementById("confirmModal");
+    const modalFrom    = document.getElementById("modalFrom");
+    const modalPlan    = document.getElementById("modalPlan");
     const modalCaption = document.getElementById("modalCaption");
 
+    // Show correct view based on ?from=
     function initializeInvite() {
       if (from) {
         inviteCard.classList.add("hidden");
         crushCard.classList.remove("hidden");
         inviteTitle.textContent = (from || "Someone") + " would like to invite you on a date";
+      } else {
+        inviteCard.classList.remove("hidden");
+        crushCard.classList.add("hidden");
       }
     }
 
+    // Generate personalized link
     function generateLink() {
       const name = document.getElementById("nameInput").value.trim();
       if (!name) return;
@@ -257,26 +288,12 @@
         <input id="inviteLinkInput" type="text" value="${window.generatedInviteLink}" readonly>
         <br/>
         <button class="yes" onclick="copyInviteLink()">Copy link</button>
-        <button class="yes" onclick="sendInviteLink()">Send link</button>
       `;
     }
 
     function copyInviteLink() {
-      if (!window.generatedInviteLink) return;
-
       const input = document.getElementById("inviteLinkInput");
       if (!input) return;
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(window.generatedInviteLink).catch(() => {
-          fallbackCopy(input);
-        });
-      } else {
-        fallbackCopy(input);
-      }
-    }
-
-    function fallbackCopy(input) {
       input.focus();
       input.select();
       try {
@@ -285,27 +302,7 @@
       window.getSelection().removeAllRanges();
     }
 
-    function sendInviteLink() {
-      if (!window.generatedInviteLink) return;
-
-      const shareText = `Hey, here is our date invite link: ${window.generatedInviteLink}`;
-
-      if (navigator.share) {
-        navigator
-          .share({
-            title: "Dating Invite",
-            text: shareText,
-            url: window.generatedInviteLink
-          })
-          .catch(() => {});
-      } else {
-        const mailto = `mailto:?subject=${encodeURIComponent(
-          "Date Invite"
-        )}&body=${encodeURIComponent(shareText)}`;
-        window.location.href = mailto;
-      }
-    }
-
+    // No button logic
     const noMessages = [
       "Are you sure",
       "Still no",
@@ -322,6 +319,7 @@
       noCount++;
     }
 
+    // Yes button logic
     function handleYes() {
       questionEl.textContent = "Choose how we should go out";
       document.getElementById("buttons").classList.add("hidden");
@@ -356,11 +354,11 @@
       "City Lights": "Urban setting.",
       "Surprise": "Unknown destination.",
       "Momo": "Steamed dumpling.",
-      "Pani Puri": "perfect Choice.",
-      "Bhel": "perfect Choice.",
-      "Pav Bhaji": "perfect Choice.",
-      "Misal Pav": "perfect Choice.",
-      "Vada Pav": "perfect Choice.",
+      "Pani Puri": "Perfect choice.",
+      "Bhel": "Perfect choice.",
+      "Pav Bhaji": "Perfect choice.",
+      "Misal Pav": "Perfect choice.",
+      "Vada Pav": "Perfect choice."
     };
 
     function chooseOption(choice) {
@@ -381,9 +379,8 @@
     }
 
     function section(title, opts) {
-      return `<h3>${title}</h3>` + opts.map(o =>
-        `<button onclick="finalize('${o}')">${o}</button>`
-      ).join("");
+      return `<h3>${title}</h3>` +
+        opts.map(o => `<button onclick="finalize('${o}')">${o}</button>`).join("");
     }
 
     function finalize(choice) {
@@ -399,218 +396,7 @@
       modalCaption.textContent = caption;
       modal.classList.remove("hidden");
 
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-  <!-- EmailJS SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    const EMAILJS_PUBLIC_KEY   = "eJCVWmle6MBSpyYNB";
-    const EMAILJS_SERVICE_ID   = "service_wj2hlc4";
-    const EMAILJS_TEMPLATE_ID  = "template_s9mb1r1";
-    const RECIPIENT_EMAIL      = "vns.kumar20@gmail.com";
-
-    (function () {
-      emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-    })();
-  </script>
-
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fun Date Invite</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, #ffe1ec, #fdf0c2, #dfe9ff);
-      color: #222;
-      font-family: "Poppins", sans-serif;
-      text-align: center;
-      padding: 40px 10px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 22px;
-      padding: 32px 26px;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.12);
-      max-width: 640px;
-      width: 100%;
-    }
-    button {
-      margin: 10px;
-      padding: 10px 24px;
-      border-radius: 999px;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      background: #f1f5f9;
-    }
-    .hidden { display: none; }
-    .modal {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
-    .modal.hidden { display: none; }
-    .modal-backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.25);
-    }
-    .modal-content {
-      position: relative;
-      background: #fff;
-      padding: 26px;
-      border-radius: 16px;
-      max-width: 360px;
-      width: 90%;
-      text-align: center;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-    }
-  </style>
-</head>
-<body>
-
-  <div class="card" id="inviteCard">
-    <h2>Generate Your Dating Invite</h2>
-    <p>Enter your name:</p>
-    <input id="nameInput" placeholder="Your Name" />
-    <br />
-    <button onclick="generateLink()">Generate Invite Link</button>
-    <div class="link-box hidden" id="linkBox"></div>
-  </div>
-
-  <div class="card hidden" id="crushCard">
-    <h2 id="inviteTitle"></h2>
-    <h3 id="question">Would you like to go on a date with me?</h3>
-    <div id="buttons">
-      <button onclick="handleYes()">Yes</button>
-      <button onclick="handleNo()">No</button>
-    </div>
-    <div class="options hidden" id="options"></div>
-    <div class="suboptions hidden" id="suboptions"></div>
-    <div class="final-box hidden" id="finalBox"></div>
-  </div>
-
-  <!-- Confirmation Modal -->
-  <div id="confirmModal" class="modal hidden">
-    <div class="modal-backdrop" onclick="closeModal()"></div>
-    <div class="modal-content">
-      <h2>Date Confirmed!</h2>
-      <p id="modalFrom"></p>
-      <p id="modalPlan"></p>
-      <p id="modalCaption"></p>
-      <button onclick="closeModal()">OK</button>
-    </div>
-  </div>
-
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const from = params.get("from");
-
-    const modal = document.getElementById("confirmModal");
-    const modalFrom = document.getElementById("modalFrom");
-    const modalPlan = document.getElementById("modalPlan");
-    const modalCaption = document.getElementById("modalCaption");
-
-    function initializeInvite() {
-      if (from) {
-        document.getElementById("inviteCard").classList.add("hidden");
-        document.getElementById("crushCard").classList.remove("hidden");
-        document.getElementById("inviteTitle").textContent =
-          (from || "Someone") + " would like to invite you on a date";
-      }
-    }
-
-    function generateLink() {
-      const name = document.getElementById("nameInput").value.trim();
-      if (!name) return;
-      const url = new URL(window.location.href);
-      url.searchParams.set("from", name);
-      window.generatedInviteLink = url.toString();
-      document.getElementById("linkBox").classList.remove("hidden");
-      document.getElementById("linkBox").innerHTML = `
-        <p>Share this link with your crush</p>
-        <input id="inviteLinkInput" type="text" value="${window.generatedInviteLink}" readonly>
-        <br/>
-        <button onclick="copyInviteLink()">Copy link</button>
-      `;
-    }
-
-    function copyInviteLink() {
-      const input = document.getElementById("inviteLinkInput");
-      input.select();
-      document.execCommand("copy");
-    }
-
-    const noMessages = [
-      "Are you sure",
-      "Still no",
-      "Reconsider",
-      "Take a long breath and try again",
-      "Think again",
-      "This is a good idea",
-      "Give it another thought"
-    ];
-    let noCount = 0;
-
-    function handleNo() {
-      document.getElementById("question").textContent =
-        noMessages[noCount % noMessages.length];
-      noCount++;
-    }
-
-    function handleYes() {
-      document.getElementById("buttons").classList.add("hidden");
-      document.getElementById("options").classList.remove("hidden");
-      document.getElementById("question").textContent = "Choose how we should go out";
-      document.getElementById("options").innerHTML = `
-        <button onclick="chooseOption('movie')">Movie</button>
-        <button onclick="chooseOption('coffee')">Coffee</button>
-        <button onclick="chooseOption('dinner')">Dinner</button>
-        <button onclick="chooseOption('drive')">Drive</button>
-        <button onclick="chooseOption('street')">Indian Street Food</button>
-      `;
-    }
-
-    const captions = {
-      "IMAX": "Large screen.",
-      "3D": "Three-dimensional experience.",
-      "Indian Film": "Drama and story.",
-      "Documentary": "Informative.",
-      "Pani Puri": "Spiced water balls.",
-      "Bhel": "Crunchy puffed rice mix.",
-      "Pav Bhaji": "Buttered bread and spicy curry."
-    };
-
-    function chooseOption(choice) {
-      const subOptionsEl = document.getElementById("suboptions");
-      subOptionsEl.classList.remove("hidden");
-      const lists = {
-        "movie": ["IMAX", "3D", "Indian Film", "Documentary"],
-        "street": ["Pani Puri", "Bhel", "Pav Bhaji"]
-      };
-      subOptionsEl.innerHTML = lists[choice]
-        .map((item) => `<button onclick="finalize('${item}')">${item}</button>`)
-        .join("");
-    }
-
-    function finalize(choice) {
-      const caption = captions[choice] || "";
-
-      modalFrom.textContent = "From: " + (from || "Someone");
-      modalPlan.textContent = "Plan: " + choice;
-      modalCaption.textContent = caption;
-      modal.classList.remove("hidden");
-
+      // Send email notification via EmailJS
       sendNotification(from, choice, caption);
     }
 
@@ -619,24 +405,25 @@
     }
 
     function sendNotification(fromName, choice, caption) {
-      const params = {
-        email: RECIPIENT_EMAIL,
+      const templateParams = {
+        email: RECIPIENT_EMAIL,       // maps to {{email}} in your template
         from_name: fromName || "Someone",
         plan: choice,
         message: caption
       };
 
-      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
-        .then(() => {
+      emailjs
+        .send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+        .then(function () {
           console.log("Email sent successfully");
         })
-        .catch(() => {
-          console.error("Email failed to send");
+        .catch(function (error) {
+          console.error("Email failed", error);
         });
     }
 
+    // Initialize on load
     initializeInvite();
   </script>
-
 </body>
 </html>
