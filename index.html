@@ -4,11 +4,11 @@
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>
-    // EmailJS configuration
-    const EMAILJS_PUBLIC_KEY  = "eJCVWmle6MBSpyYNB";
-    const EMAILJS_SERVICE_ID  = "service_wj2hlc4";
-    const EMAILJS_TEMPLATE_ID = "template_s9mb1r1";
-    const RECIPIENT_EMAIL     = "vns.kumar20@gmail.com";
+    // Your EmailJS credentials
+    const EMAILJS_PUBLIC_KEY   = "eJCVWmle6MBSpyYNB";
+    const EMAILJS_SERVICE_ID   = "service_wj2hlc4";
+    const EMAILJS_TEMPLATE_ID  = "template_s9mb1r1";
+    const RECIPIENT_EMAIL      = "vns.kumar20@gmail.com"; // who should get the notification
 
     (function () {
       emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
@@ -20,53 +20,44 @@
   <title>Fun Date Invite</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
+      gap: 32px;
       align-items: center;
       justify-content: center;
       background: linear-gradient(135deg, #ffe1ec, #fdf0c2, #dfe9ff);
-      color: #222222;
+      color: #222;
       font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       text-align: center;
       padding: 40px 10px;
-    }
-
-    .layout {
-      display: flex;
       flex-wrap: wrap;
-      gap: 24px;
-      align-items: stretch;
-      justify-content: center;
-      max-width: 1400px;
-      width: 100%;
     }
 
     .card {
       background: #ffffff;
       border-radius: 22px;
-      padding: 32px 26px 36px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+      padding: 42px 40px 40px;
+      box-shadow: 0 22px 60px rgba(15, 23, 42, 0.18);
       max-width: 640px;
       width: 100%;
     }
 
     h2 {
       margin-top: 0;
-      margin-bottom: 16px;
-      font-size: 1.9rem;
-      color: #1f2933;
+      margin-bottom: 22px;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #111827;
     }
 
     h3 {
-      margin: 18px 0 10px;
-      font-size: 1.25rem;
-      color: #3a4250;
+      margin: 14px 0 12px;
+      font-size: 1.2rem;
+      color: #374151;
     }
 
     p {
@@ -76,21 +67,21 @@
 
     button {
       margin: 10px;
-      padding: 10px 24px;
+      padding: 12px 30px;
       border-radius: 999px;
       border: none;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-      font-size: 0.95rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      font-size: 0.98rem;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
       background: #f1f5f9;
       color: #111827;
     }
 
     button:hover {
       transform: translateY(-1px);
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
     }
 
     .yes {
@@ -122,30 +113,36 @@
     }
 
     input {
-      padding: 9px 12px;
+      padding: 14px 18px;
       border-radius: 999px;
       border: 1px solid #e5e7eb;
-      margin-top: 10px;
+      margin-top: 12px;
       width: 80%;
-      max-width: 320px;
-      font-size: 0.95rem;
+      max-width: 380px;
+      font-size: 1rem;
       outline: none;
       text-align: center;
       background: #f9fafb;
+      color: #111827;
+    }
+
+    input::placeholder {
+      color: #9ca3af;
     }
 
     input:focus {
       border-color: #fb7185;
-      box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.25);
+      box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.3);
     }
 
     .link-box {
       background: #f9fafb;
       border-radius: 16px;
-      margin-top: 20px;
-      padding: 14px 14px 18px;
+      margin-top: 22px;
+      padding: 14px 16px 18px;
       font-size: 0.9em;
       border: 1px solid #e5e7eb;
+      word-break: break-all;
     }
 
     .final-box {
@@ -189,45 +186,37 @@
     }
 
     .modal-content h2 {
-      font-size: 1.5rem;
+      font-size: 1.6rem;
       margin-bottom: 10px;
     }
 
     .modal-content p {
       margin: 4px 0;
     }
-
-    @media (max-width: 900px) {
-      .layout {
-        flex-direction: column;
-      }
-    }
   </style>
 </head>
 <body>
-  <div class="layout">
-    <!-- Generator card -->
-    <div class="card" id="inviteCard">
-      <h2>Generate Your Dating Invite</h2>
-      <p>Enter your name:</p>
-      <input id="nameInput" placeholder="Your Name" />
-      <br />
-      <button class="yes" onclick="generateLink()">Generate Invite Link</button>
-      <div class="link-box hidden" id="linkBox"></div>
-    </div>
+  <!-- Generator card -->
+  <div class="card" id="inviteCard">
+    <h2>Generate Your Dating Invite</h2>
+    <p>Enter your name:</p>
+    <input id="nameInput" placeholder="Your Name" />
+    <br />
+    <button class="yes" onclick="generateLink()">Generate Invite Link</button>
+    <div class="link-box hidden" id="linkBox"></div>
+  </div>
 
-    <!-- Crush view card -->
-    <div class="card hidden" id="crushCard">
-      <h2 id="inviteTitle"></h2>
-      <h3 id="question">Would you like to go on a date with me?</h3>
-      <div id="buttons">
-        <button class="yes" onclick="handleYes()">Yes</button>
-        <button class="no" onclick="handleNo()">No</button>
-      </div>
-      <div class="options hidden" id="options"></div>
-      <div class="suboptions hidden" id="suboptions"></div>
-      <div class="final-box hidden" id="finalBox"></div>
+  <!-- Recipient / crush card -->
+  <div class="card hidden" id="crushCard">
+    <h2 id="inviteTitle"></h2>
+    <h3 id="question">Would you like to go on a date with me</h3>
+    <div id="buttons">
+      <button class="yes" onclick="handleYes()">Yes</button>
+      <button class="no" onclick="handleNo()">No</button>
     </div>
+    <div class="options hidden" id="options"></div>
+    <div class="suboptions hidden" id="suboptions"></div>
+    <div class="final-box hidden" id="finalBox"></div>
   </div>
 
   <!-- Modal popup -->
@@ -243,10 +232,11 @@
   </div>
 
   <script>
-    // Read query param
+    // Query param reading
     const params = new URLSearchParams(window.location.search);
     const from = params.get("from");
 
+    // DOM elements
     const inviteCard   = document.getElementById("inviteCard");
     const crushCard    = document.getElementById("crushCard");
     const inviteTitle  = document.getElementById("inviteTitle");
@@ -260,15 +250,12 @@
     const modalPlan    = document.getElementById("modalPlan");
     const modalCaption = document.getElementById("modalCaption");
 
-    // Show correct view based on ?from=
+    // Show correct card depending on URL
     function initializeInvite() {
       if (from) {
         inviteCard.classList.add("hidden");
         crushCard.classList.remove("hidden");
         inviteTitle.textContent = (from || "Someone") + " would like to invite you on a date";
-      } else {
-        inviteCard.classList.remove("hidden");
-        crushCard.classList.add("hidden");
       }
     }
 
@@ -294,15 +281,11 @@
     function copyInviteLink() {
       const input = document.getElementById("inviteLinkInput");
       if (!input) return;
-      input.focus();
       input.select();
-      try {
-        document.execCommand("copy");
-      } catch (e) {}
-      window.getSelection().removeAllRanges();
+      document.execCommand("copy");
     }
 
-    // No button logic
+    // No button fun
     const noMessages = [
       "Are you sure",
       "Still no",
@@ -319,72 +302,72 @@
       noCount++;
     }
 
-    // Yes button logic
     function handleYes() {
       questionEl.textContent = "Choose how we should go out";
       document.getElementById("buttons").classList.add("hidden");
       optionsEl.classList.remove("hidden");
       optionsEl.innerHTML = `
-        <button onclick="chooseOption('movie')">Movie</button>
-        <button onclick="chooseOption('coffee')">Coffee</button>
-        <button onclick="chooseOption('dinner')">Dinner</button>
-        <button onclick="chooseOption('drive')">Drive</button>
-        <button onclick="chooseOption('street')">Indian Street Food</button>
+        <button class="yes" onclick="chooseOption('movie')">Movie</button>
+        <button class="yes" onclick="chooseOption('coffee')">Coffee</button>
+        <button class="yes" onclick="chooseOption('dinner')">Dinner</button>
+        <button class="yes" onclick="chooseOption('drive')">Drive</button>
+        <button class="yes" onclick="chooseOption('street')">Indian Street Food</button>
       `;
     }
 
+    // Captions for final choice
     const captions = {
-      "IMAX": "Large screen.",
-      "3D": "Three-dimensional experience.",
-      "Indian Film": "Drama and story.",
-      "Documentary": "Informative.",
-      "Animated": "Light and creative.",
-      "Horror": "Intense atmosphere.",
-      "Comedy": "Light mood.",
-      "Indian": "Spicy food.",
-      "Mexican": "Flavourful.",
-      "Pizza": "Simple meal.",
-      "Italian": "Classic dining.",
-      "Brazilian": "Strong coffee.",
-      "Mocha": "Chocolate blend.",
-      "Dry Roast": "Bold taste.",
-      "Colombian": "Rich scent.",
-      "Beach": "Open space.",
-      "Hilltop": "High viewpoint.",
-      "City Lights": "Urban setting.",
-      "Surprise": "Unknown destination.",
-      "Momo": "Steamed dumpling.",
-      "Pani Puri": "Perfect choice.",
-      "Bhel": "Perfect choice.",
-      "Pav Bhaji": "Perfect choice.",
-      "Misal Pav": "Perfect choice.",
-      "Vada Pav": "Perfect choice."
+      "IMAX": "Big screen, big feelings.",
+      "3D": "Because flat dates are overrated.",
+      "Indian Film": "Drama, music, and probably some tears.",
+      "Documentary": "We pretend to be intellectual for 90 minutes.",
+      "Animated": "Wholesome chaos and popcorn.",
+      "Horror": "Free hand-holding included.",
+      "Comedy": "If we do not laugh, refund the date.",
+      "Indian": "High spice, higher chemistry.",
+      "Mexican": "Extra guac, extra flirting.",
+      "Pizza": "Serious discussion: pineapple or no.",
+      "Italian": "Pasta, wine, and unreasonably long eye contact.",
+      "Brazilian": "Caffeine plus chaos.",
+      "Mocha": "Chocolate and bad decisions.",
+      "Dry Roast": "Dark, intense, a little dramatic.",
+      "Colombian": "Strong coffee, stronger vibes.",
+      "Beach": "Sand, sunset, and slightly awkward photos.",
+      "Hilltop": "Great view, even better company.",
+      "City Lights": "Late-night walk, main-character energy.",
+      "Surprise": "You say yes, I plan the chaos.",
+      "Momo": "Soft on the outside, spicy on the inside. Like us.",
+      "Pani Puri": "Perfect pick for a brave heart.",
+      "Bhel": "Crunchy, messy, and fun. Like this date.",
+      "Pav Bhaji": "Butter, carbs, and chemistry.",
+      "Misal Pav": "Spicy enough to blame the blush.",
+      "Vada Pav": "Mumbai classic, chaos guaranteed."
     };
 
     function chooseOption(choice) {
       subOptionsEl.classList.remove("hidden");
-      let content = "";
-      if (choice === "movie") {
-        content = section("Select movie type", ["IMAX", "3D", "Indian Film", "Documentary", "Animated", "Horror", "Comedy"]);
-      } else if (choice === "dinner") {
-        content = section("Select restaurant type", ["Indian", "Mexican", "Pizza", "Italian"]);
-      } else if (choice === "coffee") {
-        content = section("Select coffee type", ["Brazilian", "Mocha", "Dry Roast", "Colombian"]);
-      } else if (choice === "drive") {
-        content = section("Select drive destination", ["Beach", "Hilltop", "City Lights", "Surprise"]);
-      } else if (choice === "street") {
-        content = section("Select Indian street food", ["Momo", "Pani Puri", "Bhel", "Pav Bhaji", "Misal Pav", "Vada Pav"]);
-      }
-      subOptionsEl.innerHTML = content;
-    }
+      let list = [];
 
-    function section(title, opts) {
-      return `<h3>${title}</h3>` +
-        opts.map(o => `<button onclick="finalize('${o}')">${o}</button>`).join("");
+      if (choice === "movie") {
+        list = ["IMAX", "3D", "Indian Film", "Documentary", "Animated", "Horror", "Comedy"];
+      } else if (choice === "dinner") {
+        list = ["Indian", "Mexican", "Pizza", "Italian"];
+      } else if (choice === "coffee") {
+        list = ["Brazilian", "Mocha", "Dry Roast", "Colombian"];
+      } else if (choice === "drive") {
+        list = ["Beach", "Hilltop", "City Lights", "Surprise"];
+      } else if (choice === "street") {
+        list = ["Momo", "Pani Puri", "Bhel", "Pav Bhaji", "Misal Pav", "Vada Pav"];
+      }
+
+      subOptionsEl.innerHTML =
+        `<h3>Pick the exact plan</h3>` +
+        list.map(o => `<button class="yes" onclick="finalize('${o}')">${o}</button>`).join("");
     }
 
     function finalize(choice) {
       const caption = captions[choice] || "";
+
       finalBox.classList.remove("hidden");
       finalBox.innerHTML = `
         <h3>Date confirmed: ${choice}</h3>
@@ -396,7 +379,6 @@
       modalCaption.textContent = caption;
       modal.classList.remove("hidden");
 
-      // Send email notification via EmailJS
       sendNotification(from, choice, caption);
     }
 
@@ -404,25 +386,25 @@
       modal.classList.add("hidden");
     }
 
+    // EmailJS notification
     function sendNotification(fromName, choice, caption) {
       const templateParams = {
-        email: RECIPIENT_EMAIL,       // maps to {{email}} in your template
+        email: RECIPIENT_EMAIL,        // must match {{email}} in EmailJS template
         from_name: fromName || "Someone",
-        plan: choice,
-        message: caption
+        plan: choice,                  // {{plan}} in template
+        message: caption               // {{message}} in template
       };
 
       emailjs
         .send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-        .then(function () {
+        .then(() => {
           console.log("Email sent successfully");
         })
-        .catch(function (error) {
+        .catch((error) => {
           console.error("Email failed", error);
         });
     }
 
-    // Initialize on load
     initializeInvite();
   </script>
 </body>
