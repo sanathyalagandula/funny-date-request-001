@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dating Invite</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #ffe1ec, #fdf0c2, #dfe9ff);
+      color: #222222;
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      text-align: center;
+      padding: 40px 10px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 22px;
+      padding: 32px 26px 36px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+      display: inline-block;
+      max-width: 640px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.9rem;
+      color: #1f2933;
+    }
+
+    h3 {
+      margin: 18px 0 10px;
+      font-size: 1.25rem;
+      color: #3a4250;
+    }
+
+    p {
+      margin: 8px 0;
+      line-height: 1.4;
+    }
+
+    button {
+      margin: 10px;
+      padding: 10px 24px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      background: #f1f5f9;
+      color: #111827;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+    }
+
+    .yes {
+      background: linear-gradient(135deg, #ff8db5, #ffc371);
+      color: #1f2933;
+    }
+
+    .yes:hover {
+      background: linear-gradient(135deg, #ff78a8, #ffb347);
+    }
+
+    .no {
+      background: #e5e7eb;
+      color: #b91c1c;
+    }
+
+    .no:hover {
+      background: #fecaca;
+      color: #7f1d1d;
+    }
+
+    .options,
+    .suboptions {
+      margin-top: 20px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    input {
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      margin-top: 10px;
+      width: 80%;
+      max-width: 320px;
+      font-size: 0.95rem;
+      outline: none;
+      text-align: center;
+      background: #f9fafb;
+    }
+
+    input:focus {
+      border-color: #fb7185;
+      box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.25);
+    }
+
+    .link-box {
+      background: #f9fafb;
+      border-radius: 16px;
+      margin-top: 20px;
+      padding: 14px 14px 18px;
+      font-size: 0.9em;
+      border: 1px solid #e5e7eb;
+    }
+
+    .final-box {
+      margin-top: 26px;
+      padding: 16px 14px 20px;
+      border-radius: 16px;
+      background: #fef3c7;
+      border: 1px solid #facc15;
+      color: #92400e;
+    }
+
+    /* Modal popup */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal.hidden {
+      display: none;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.35);
+    }
+
+    .modal-content {
+      position: relative;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 24px 22px 26px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .modal-content h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .modal-content p {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="inviteCard">
+    <h2>Generate Your Dating Invite</h2>
+    <p>Enter your name:</p>
+    <input id="nameInput" placeholder="Your Name" />
+    <br />
+    <button class="yes" onclick="generateLink()">Generate Invite Link</button>
+    <div class="link-box hidden" id="linkBox"></div>
+  </div>
+
+  <div class="card hidden" id="crushCard">
+    <h2 id="inviteTitle"></h2>
+    <h3 id="question">Would you like to go on a date with me?</h3>
+    <div id="buttons">
+      <button class="yes" onclick="handleYes()">Yes</button>
+      <button class="no" onclick="handleNo()">No</button>
+    </div>
+    <div class="options hidden" id="options"></div>
+    <div class="suboptions hidden" id="suboptions"></div>
+    <div class="final-box hidden" id="finalBox"></div>
+  </div>
+
+  <!-- Modal popup on same screen -->
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-content">
+      <h2>Date confirmed!</h2>
+      <p id="modalFrom"></p>
+      <p id="modalPlan"></p>
+      <p id="modalCaption"></p>
+      <button class="yes" onclick="closeModal()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get("from");
+
+    const inviteCard = document.getElementById("inviteCard");
+    const crushCard = document.getElementById("crushCard");
+    const inviteTitle = document.getElementById("inviteTitle");
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const subOptionsEl = document.getElementById("suboptions");
+    const finalBox = document.getElementById("finalBox");
+
+    const modal = document.getElementById("confirmModal");
+    const modalFrom = document.getElementById("modalFrom");
+    const modalPlan = document.getElementById("modalPlan");
+    const modalCaption = document.getElementById("modalCaption");
+
+    function initializeInvite() {
+      if (from) {
+        inviteCard.classList.add("hidden");
+        crushCard.classList.remove("hidden");
+        inviteTitle.textContent = (from || "Someone") + " would like to invite you on a date";
+      }
+    }
+
+    function generateLink() {
+      const name = document.getElementById("nameInput").value.trim();
+      if (!name) return;
+
+      const url = new URL(window.location.href);
+      url.searchParams.set("from", name);
+      window.generatedInviteLink = url.toString();
+
+      const linkBox = document.getElementById("linkBox");
+      linkBox.classList.remove("hidden");
+      linkBox.innerHTML = `
+        <p>Share this link with your crush</p>
+        <input id="inviteLinkInput" type="text" value="${window.generatedInviteLink}" readonly>
+        <br/>
+        <button class="yes" onclick="copyInviteLink()">Copy link</button>
+        <button class="yes" onclick="sendInviteLink()">Send link</button>
+      `;
+    }
+
+    function copyInviteLink() {
+      if (!window.generatedInviteLink) return;
+
+      const input = document.getElementById("inviteLinkInput");
+      if (!input) return;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.generatedInviteLink).catch(() => {
+          fallbackCopy(input);
+        });
+      } else {
+        fallbackCopy(input);
+      }
+    }
+
+    function fallbackCopy(input) {
+      input.focus();
+      input.select();
+      try {
+        document.execCommand("copy");
+      } catch (e) {}
+      window.getSelection().removeAllRanges();
+    }
+
+    function sendInviteLink() {
+      if (!window.generatedInviteLink) return;
+
+      const shareText = `Hey, here is our date invite link: ${window.generatedInviteLink}`;
+
+      if (navigator.share) {
+        navigator
+          .share({
+            title: "Dating Invite",
+            text: shareText,
+            url: window.generatedInviteLink
+          })
+          .catch(() => {});
+      } else {
+        const mailto = `mailto:?subject=${encodeURIComponent(
+          "Date Invite"
+        )}&body=${encodeURIComponent(shareText)}`;
+        window.location.href = mailto;
+      }
+    }
+
+    const noMessages = [
+      "Are you sure",
+      "Still no",
+      "Reconsider",
+      "Take a long breath and try again",
+      "Think again",
+      "This is a good idea",
+      "Give it another thought"
+    ];
+    let noCount = 0;
+
+    function handleNo() {
+      questionEl.textContent = noMessages[noCount % noMessages.length];
+      noCount++;
+    }
+
+    function handleYes() {
+      questionEl.textContent = "Choose how we should go out";
+      document.getElementById("buttons").classList.add("hidden");
+      optionsEl.classList.remove("hidden");
+      optionsEl.innerHTML = `
+        <button onclick="chooseOption('movie')">Movie</button>
+        <button onclick="chooseOption('coffee')">Coffee</button>
+        <button onclick="chooseOption('dinner')">Dinner</button>
+        <button onclick="chooseOption('drive')">Drive</button>
+        <button onclick="chooseOption('street')">Indian Street Food</button>
+      `;
+    }
+
+    const captions = {
+      "IMAX": "Large screen.",
+      "3D": "Three-dimensional experience.",
+      "Indian Film": "Drama and story.",
+      "Documentary": "Informative.",
+      "Animated": "Light and creative.",
+      "Horror": "Intense atmosphere.",
+      "Comedy": "Light mood.",
+      "Indian": "Spicy food.",
+      "Mexican": "Flavourful.",
+      "Pizza": "Simple meal.",
+      "Italian": "Classic dining.",
+      "Brazilian": "Strong coffee.",
+      "Mocha": "Chocolate blend.",
+      "Dry Roast": "Bold taste.",
+      "Colombian": "Rich scent.",
+      "Beach": "Open space.",
+      "Hilltop": "High viewpoint.",
+      "City Lights": "Urban setting.",
+      "Surprise": "Unknown destination.",
+      "Momo": "Steamed dumpling.",
+      "Pani Puri": "Spiced water balls.",
+      "Bhel": "Crunchy puffed rice mix.",
+      "Pav Bhaji": "Mashed spiced curry with buttered bread.",
+      "Misal Pav": "Spicy sprout curry with bread.",
+      "Vada Pav": "Spicy potato fritter in a bun."
+    };
+
+    function chooseOption(choice) {
+      subOptionsEl.classList.remove("hidden");
+      let content = "";
+      if (choice === "movie") {
+        content = section("Select movie type", ["IMAX", "3D", "Indian Film", "Documentary", "Animated", "Horror", "Comedy"]);
+      } else if (choice === "dinner") {
+        content = section("Select restaurant type", ["Indian", "Mexican", "Pizza", "Italian"]);
+      } else if (choice === "coffee") {
+        content = section("Select coffee type", ["Brazilian", "Mocha", "Dry Roast", "Colombian"]);
+      } else if (choice === "drive") {
+        content = section("Select drive destination", ["Beach", "Hilltop", "City Lights", "Surprise"]);
+      } else if (choice === "street") {
+        content = section("Select Indian street food", ["Momo", "Pani Puri", "Bhel", "Pav Bhaji", "Misal Pav", "Vada Pav"]);
+      }
+      subOptionsEl.innerHTML = content;
+    }
+
+    function section(title, opts) {
+      return `<h3>${title}</h3>` + opts.map(o =>
+        `<button onclick="finalize('${o}')">${o}</button>`
+      ).join("");
+    }
+
+    function finalize(choice) {
+      const caption = captions[choice] || "";
+      finalBox.classList.remove("hidden");
+      finalBox.innerHTML = `
+        <h3>Date confirmed: ${choice}</h3>
+        <p>${caption}</p>
+      `;
+
+      modalFrom.textContent = "From: " + (from || "Someone");
+      modalPlan.textContent = "Plan: " + choice;
+      modalCaption.textContent = caption;
+      modal.classList.remove("hidden");
+
+      sendNotification(from, choice, caption);
+    }
+
+    function closeModal() {
+      modal.classList.add("hidden");
+    }
+
+    function sendNotification(fromName, choice, caption) {
+      try {
+        fetch("/api/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: fromName || "Anonymous",
+            choice,
+            caption,
+            url: window.location.href
+          })
+        }).catch(() => {});
+      } catch (e) {}
+    }
+
+    initializeInvite();
+  </script>
+</body>
+</html>
