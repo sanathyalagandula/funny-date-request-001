@@ -247,9 +247,16 @@
       getDatabase,
       ref,
       push,
-      onChildAdded
+      onChildAdded,
+      set
     } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
+    import {
+      getMessaging,
+      getToken,
+      onMessage
+    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-messaging.js";
 
+    // Your existing Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDCx7mIdrnJCMH_wZZAMd-C7IZs8RZzfhc",
       authDomain: "date-invite-171cf.firebaseapp.com",
@@ -263,6 +270,11 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const messaging = getMessaging(app);
+
+    // 🔑 Your Web Push VAPID key (public)
+    const VAPID_KEY =
+      "BL82Ai890kV9ismKBLJe_ENJW4igytF8aRym009FnPDNFe95IUtjxZB0jhO1tyLKChn7syz1jRy_twmeCpQ8TSE";
 
     const params = new URLSearchParams(window.location.search);
     const fromParam = params.get("from") || "";
@@ -287,12 +299,54 @@
     let toastTimer = null;
     let currentChannelId = channelParam || "";
 
+    // --------------------------
+    // Helper: channel id
+    // --------------------------
     function makeChannelId(base) {
       if (channelParam) return channelParam;
       const cleaned = (base || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
       return cleaned || "default_channel";
     }
 
+    // --------------------------
+    // FCM: init + save token
+    // --------------------------
+    async function initPushNotifications(channelId) {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          console.log("Notification permission denied");
+          return;
+        }
+
+        const token = await getToken(messaging, {
+          vapidKey: VAPID_KEY
+        });
+        console.log("FCM token:", token);
+
+        // Save token under fcmTokens/{channelId}
+        await set(ref(db, "fcmTokens/" + channelId), {
+          token: token,
+          updatedAt: Date.now()
+        });
+
+        console.log("FCM token saved for channel:", channelId);
+      } catch (err) {
+        console.error("Error getting FCM token:", err);
+      }
+    }
+
+    // Foreground messages (when tab is open)
+    onMessage(messaging, (payload) => {
+      console.log("📩 FCM foreground message:", payload);
+      const title = payload?.notification?.title || "New notification";
+      const body = payload?.notification?.body || "";
+      showToast(title + " — " + body);
+    });
+
+    // --------------------------
+    // UI: toast
+    // --------------------------
     function showToast(message) {
       toast.textContent = message;
       toast.classList.add("show");
@@ -302,6 +356,9 @@
       }, 4000);
     }
 
+    // --------------------------
+    // Live (Realtime DB) notifications
+    // --------------------------
     function startListeningForNotifications(channelId) {
       if (!channelId) return;
       const notificationsRef = ref(db, "date_notifications/" + channelId);
@@ -317,20 +374,27 @@
       });
     }
 
+    // --------------------------
+    // Initial mode (sender / receiver)
+    // --------------------------
     function initializeInvite() {
       if (fromParam) {
+        // Receiver view
         inviteCard.classList.add("hidden");
         crushCard.classList.remove("hidden");
         inviteTitle.textContent =
           (fromParam || "Someone") + " would like to invite you on a date";
         currentChannelId = makeChannelId(fromParam);
       } else {
+        // Sender view
         crushCard.classList.add("hidden");
         inviteCard.classList.remove("hidden");
       }
     }
 
-    // make functions global for inline onclick
+    // --------------------------
+    // Global functions for inline handlers
+    // --------------------------
     window.generateLink = function () {
       const nameInput = document.getElementById("nameInput");
       const name = nameInput.value.trim();
@@ -351,7 +415,12 @@
         <button class="yes" onclick="copyInviteLink()">Copy link</button>
       `;
       watchHint.classList.remove("hidden");
+
+      // 🔔 Start live DB notifications
       startListeningForNotifications(currentChannelId);
+
+      // 🔔 Register this browser for FCM push using this channel as id
+      initPushNotifications(currentChannelId);
     };
 
     window.copyInviteLink = function () {
@@ -359,6 +428,7 @@
       if (!input) return;
       input.select();
       document.execCommand("copy");
+      showToast("Link copied!");
     };
 
     const noMessages = [
