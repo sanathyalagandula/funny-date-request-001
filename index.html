@@ -135,7 +135,6 @@
       color: #92400e;
     }
 
-    /* Modal popup (receiver side) */
     .modal {
       position: fixed;
       inset: 0;
@@ -175,7 +174,7 @@
       margin: 4px 0;
     }
 
-    /* Sender toast popup (notification) */
+    /* Sender toast popup */
     #toast {
       position: fixed;
       bottom: 24px;
@@ -209,7 +208,7 @@
     <button class="yes" onclick="generateLink()">Generate Invite Link</button>
     <div class="link-box hidden" id="linkBox"></div>
     <p id="watchHint" class="hidden" style="margin-top:16px; font-size:0.85rem; color:#6b7280;">
-      Keep this tab open! When they pick a plan, you will get a live notification here.
+      Keep this tab open. When they pick a plan, you will get a live notification here.
     </p>
   </div>
 
@@ -241,9 +240,8 @@
   <!-- Sender toast popup -->
   <div id="toast"></div>
 
-  <!-- Main logic + Firebase -->
+  <!-- JS + Firebase -->
   <script type="module">
-    // ---------- Firebase imports ----------
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
     import {
       getDatabase,
@@ -252,7 +250,6 @@
       onChildAdded
     } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
 
-    // ---------- Firebase config (from your console) ----------
     const firebaseConfig = {
       apiKey: "AIzaSyDCx7mIdrnJCMH_wZZAMd-C7IZs8RZzfhc",
       authDomain: "date-invite-171cf.firebaseapp.com",
@@ -267,7 +264,6 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ---------- DOM references ----------
     const params = new URLSearchParams(window.location.search);
     const fromParam = params.get("from") || "";
     const channelParam = params.get("c") || "";
@@ -291,14 +287,12 @@
     let toastTimer = null;
     let currentChannelId = channelParam || "";
 
-    // ---------- Helper: channel id ----------
     function makeChannelId(base) {
-      if (channelParam) return channelParam; // if link has explicit channel, trust it
+      if (channelParam) return channelParam;
       const cleaned = (base || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
       return cleaned || "default_channel";
     }
 
-    // ---------- Helper: toast popup on sender ----------
     function showToast(message) {
       toast.textContent = message;
       toast.classList.add("show");
@@ -308,15 +302,12 @@
       }, 4000);
     }
 
-    // ---------- Firebase listener for sender ----------
     function startListeningForNotifications(channelId) {
       if (!channelId) return;
       const notificationsRef = ref(db, "date_notifications/" + channelId);
-
       onChildAdded(notificationsRef, (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
-
         const summary =
           (data.from || "Someone") +
           " picked " +
@@ -326,23 +317,20 @@
       });
     }
 
-    // ---------- Page initialization ----------
     function initializeInvite() {
       if (fromParam) {
-        // Receiver view
         inviteCard.classList.add("hidden");
         crushCard.classList.remove("hidden");
         inviteTitle.textContent =
           (fromParam || "Someone") + " would like to invite you on a date";
         currentChannelId = makeChannelId(fromParam);
       } else {
-        // Sender view – we will start listening once they generate a link
         crushCard.classList.add("hidden");
         inviteCard.classList.remove("hidden");
       }
     }
 
-    // ---------- Generate invite link (sender) ----------
+    // make functions global for inline onclick
     window.generateLink = function () {
       const nameInput = document.getElementById("nameInput");
       const name = nameInput.value.trim();
@@ -363,12 +351,9 @@
         <button class="yes" onclick="copyInviteLink()">Copy link</button>
       `;
       watchHint.classList.remove("hidden");
-
-      // Start listening for Firebase notifications on this channel
       startListeningForNotifications(currentChannelId);
     };
 
-    // ---------- Copy invite link ----------
     window.copyInviteLink = function () {
       const input = document.getElementById("inviteLinkInput");
       if (!input) return;
@@ -376,7 +361,6 @@
       document.execCommand("copy");
     };
 
-    // ---------- No button logic ----------
     const noMessages = [
       "Are you sure",
       "Still no",
@@ -393,7 +377,6 @@
       noCount++;
     };
 
-    // ---------- Yes button logic ----------
     window.handleYes = function () {
       questionEl.textContent = "Choose how we should go out";
       document.getElementById("buttons").classList.add("hidden");
@@ -407,7 +390,6 @@
       `;
     };
 
-    // ---------- Captions ----------
     const captions = {
       "IMAX": "Large screen.",
       "3D": "Three-dimensional experience.",
@@ -436,7 +418,6 @@
       "Vada Pav": "Perfect choice."
     };
 
-    // ---------- Option + sub-option selection ----------
     window.chooseOption = function (choice) {
       subOptionsEl.classList.remove("hidden");
       let list = [];
@@ -458,7 +439,6 @@
         list.map(o => `<button class="yes" onclick="finalize('${o}')">${o}</button>`).join("");
     };
 
-    // ---------- Finalize selection ----------
     window.finalize = function (choice) {
       const caption = captions[choice] || "";
       finalBox.classList.remove("hidden");
@@ -472,10 +452,7 @@
       modalCaption.textContent = caption;
       modal.classList.remove("hidden");
 
-      // Determine channel for this selection (receiver side)
       const channelIdToUse = currentChannelId || makeChannelId(fromParam || "someone");
-
-      // Push notification to Firebase
       const notificationsRef = ref(db, "date_notifications/" + channelIdToUse);
       push(notificationsRef, {
         from: fromParam || "Someone",
@@ -487,12 +464,10 @@
       });
     };
 
-    // ---------- Close modal ----------
     window.closeModal = function () {
       modal.classList.add("hidden");
     };
 
-    // ---------- Start ----------
     initializeInvite();
   </script>
 </body>
