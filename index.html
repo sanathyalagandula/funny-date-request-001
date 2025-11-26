@@ -1,63 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- EmailJS SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    // Your EmailJS credentials
-    const EMAILJS_PUBLIC_KEY   = "eJCVWmle6MBSpyYNB";
-    const EMAILJS_SERVICE_ID   = "service_wj2hlc4";
-    const EMAILJS_TEMPLATE_ID  = "template_s9mb1r1";
-    const RECIPIENT_EMAIL      = "vns.kumar20@gmail.com"; // who should get the notification
-
-    (function () {
-      emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-    })();
-  </script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fun Date Invite</title>
 
+  <!-- Firebase (compat CDN, works in plain script) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
       display: flex;
-      gap: 32px;
       align-items: center;
       justify-content: center;
       background: linear-gradient(135deg, #ffe1ec, #fdf0c2, #dfe9ff);
-      color: #222;
+      color: #222222;
       font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       text-align: center;
       padding: 40px 10px;
-      flex-wrap: wrap;
     }
 
     .card {
       background: #ffffff;
       border-radius: 22px;
-      padding: 42px 40px 40px;
-      box-shadow: 0 22px 60px rgba(15, 23, 42, 0.18);
+      padding: 32px 26px 36px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+      display: inline-block;
       max-width: 640px;
       width: 100%;
+      margin: 10px;
     }
 
     h2 {
       margin-top: 0;
-      margin-bottom: 22px;
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: #111827;
+      margin-bottom: 16px;
+      font-size: 1.9rem;
+      color: #1f2933;
     }
 
     h3 {
-      margin: 14px 0 12px;
-      font-size: 1.2rem;
-      color: #374151;
+      margin: 18px 0 10px;
+      font-size: 1.25rem;
+      color: #3a4250;
     }
 
     p {
@@ -67,21 +58,21 @@
 
     button {
       margin: 10px;
-      padding: 12px 30px;
+      padding: 10px 24px;
       border-radius: 999px;
       border: none;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-      font-size: 0.98rem;
-      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+      font-size: 0.95rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
       background: #f1f5f9;
       color: #111827;
     }
 
     button:hover {
       transform: translateY(-1px);
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
     }
 
     .yes {
@@ -113,36 +104,30 @@
     }
 
     input {
-      padding: 14px 18px;
+      padding: 9px 12px;
       border-radius: 999px;
       border: 1px solid #e5e7eb;
-      margin-top: 12px;
+      margin-top: 10px;
       width: 80%;
-      max-width: 380px;
-      font-size: 1rem;
+      max-width: 320px;
+      font-size: 0.95rem;
       outline: none;
       text-align: center;
       background: #f9fafb;
-      color: #111827;
-    }
-
-    input::placeholder {
-      color: #9ca3af;
     }
 
     input:focus {
       border-color: #fb7185;
-      box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.3);
+      box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.25);
     }
 
     .link-box {
       background: #f9fafb;
       border-radius: 16px;
-      margin-top: 22px;
-      padding: 14px 16px 18px;
+      margin-top: 20px;
+      padding: 14px 14px 18px;
       font-size: 0.9em;
       border: 1px solid #e5e7eb;
-      word-break: break-all;
     }
 
     .final-box {
@@ -154,7 +139,7 @@
       color: #92400e;
     }
 
-    /* Modal popup */
+    /* Modal popup base */
     .modal {
       position: fixed;
       inset: 0;
@@ -186,7 +171,7 @@
     }
 
     .modal-content h2 {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       margin-bottom: 10px;
     }
 
@@ -196,7 +181,7 @@
   </style>
 </head>
 <body>
-  <!-- Generator card -->
+  <!-- Sender card: generate link -->
   <div class="card" id="inviteCard">
     <h2>Generate Your Dating Invite</h2>
     <p>Enter your name:</p>
@@ -206,10 +191,10 @@
     <div class="link-box hidden" id="linkBox"></div>
   </div>
 
-  <!-- Recipient / crush card -->
+  <!-- Receiver card: answer the invite -->
   <div class="card hidden" id="crushCard">
     <h2 id="inviteTitle"></h2>
-    <h3 id="question">Would you like to go on a date with me</h3>
+    <h3 id="question">Would you like to go on a date with me?</h3>
     <div id="buttons">
       <button class="yes" onclick="handleYes()">Yes</button>
       <button class="no" onclick="handleNo()">No</button>
@@ -219,7 +204,7 @@
     <div class="final-box hidden" id="finalBox"></div>
   </div>
 
-  <!-- Modal popup -->
+  <!-- Receiver confirmation modal -->
   <div id="confirmModal" class="modal hidden">
     <div class="modal-backdrop" onclick="closeModal()"></div>
     <div class="modal-content">
@@ -231,61 +216,112 @@
     </div>
   </div>
 
+  <!-- Sender notification modal (real-time Firebase notification) -->
+  <div id="senderModal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeSenderModal()"></div>
+    <div class="modal-content">
+      <h2>Your date replied!</h2>
+      <p id="senderText"></p>
+      <button class="yes" onclick="closeSenderModal()">Nice!</button>
+    </div>
+  </div>
+
   <script>
-    // Query param reading
+    // ---------- Firebase setup ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyDCx7mIdrnJCMH_wZZAMd-C7ISz8RZzfhc",
+      authDomain: "date-invite-171cf.firebaseapp.com",
+      databaseURL: "https://date-invite-171cf-default-rtdb.firebaseio.com",
+      projectId: "date-invite-171cf",
+      storageBucket: "date-invite-171cf.appspot.com",
+      messagingSenderId: "896697602494",
+      appId: "1:896697602494:web:116a1108dce5db23aa9e9f",
+      measurementId: "G-97BCRFQCDBP"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ---------- Global state ----------
     const params = new URLSearchParams(window.location.search);
     const from = params.get("from");
+    const channelFromUrl = params.get("channel");
+    window.currentChannel = channelFromUrl || null;   // used by receiver when sending
 
-    // DOM elements
-    const inviteCard   = document.getElementById("inviteCard");
-    const crushCard    = document.getElementById("crushCard");
-    const inviteTitle  = document.getElementById("inviteTitle");
-    const questionEl   = document.getElementById("question");
-    const optionsEl    = document.getElementById("options");
+    const inviteCard = document.getElementById("inviteCard");
+    const crushCard = document.getElementById("crushCard");
+    const inviteTitle = document.getElementById("inviteTitle");
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
     const subOptionsEl = document.getElementById("suboptions");
-    const finalBox     = document.getElementById("finalBox");
+    const finalBox = document.getElementById("finalBox");
 
-    const modal        = document.getElementById("confirmModal");
-    const modalFrom    = document.getElementById("modalFrom");
-    const modalPlan    = document.getElementById("modalPlan");
+    const modal = document.getElementById("confirmModal");
+    const modalFrom = document.getElementById("modalFrom");
+    const modalPlan = document.getElementById("modalPlan");
     const modalCaption = document.getElementById("modalCaption");
 
-    // Show correct card depending on URL
+    const senderModal = document.getElementById("senderModal");
+    const senderText = document.getElementById("senderText");
+
+    let listenerStarted = false;
+
+    // ---------- Invite initialization ----------
     function initializeInvite() {
       if (from) {
+        // Receiver view
         inviteCard.classList.add("hidden");
         crushCard.classList.remove("hidden");
         inviteTitle.textContent = (from || "Someone") + " would like to invite you on a date";
       }
     }
 
-    // Generate personalized link
+    // ---------- Link generation (sender) ----------
     function generateLink() {
       const name = document.getElementById("nameInput").value.trim();
       if (!name) return;
 
+      // Unique channel for this invite so notifications are not mixed
+      const channel = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : Math.random().toString(36).slice(2, 10);
+
+      window.notificationChannel = channel; // for sender listener
+
       const url = new URL(window.location.href);
       url.searchParams.set("from", name);
-      window.generatedInviteLink = url.toString();
+      url.searchParams.set("channel", channel);
+
+      const generatedLink = url.toString();
+      window.generatedInviteLink = generatedLink;
 
       const linkBox = document.getElementById("linkBox");
       linkBox.classList.remove("hidden");
       linkBox.innerHTML = `
         <p>Share this link with your crush</p>
-        <input id="inviteLinkInput" type="text" value="${window.generatedInviteLink}" readonly>
+        <input id="inviteLinkInput" type="text" value="${generatedLink}" readonly>
         <br/>
         <button class="yes" onclick="copyInviteLink()">Copy link</button>
       `;
+
+      // Start listening for replies for this specific channel
+      startNotificationListener(channel);
     }
 
     function copyInviteLink() {
       const input = document.getElementById("inviteLinkInput");
       if (!input) return;
+      input.focus();
       input.select();
-      document.execCommand("copy");
+      try {
+        document.execCommand("copy");
+      } catch (e) {
+        console.log("Copy failed", e);
+      }
+      window.getSelection().removeAllRanges();
     }
 
-    // No button fun
+    // ---------- Receiver "No" persuasion ----------
     const noMessages = [
       "Are you sure",
       "Still no",
@@ -302,46 +338,46 @@
       noCount++;
     }
 
+    // ---------- Receiver "Yes" flow ----------
     function handleYes() {
       questionEl.textContent = "Choose how we should go out";
       document.getElementById("buttons").classList.add("hidden");
       optionsEl.classList.remove("hidden");
       optionsEl.innerHTML = `
-        <button class="yes" onclick="chooseOption('movie')">Movie</button>
-        <button class="yes" onclick="chooseOption('coffee')">Coffee</button>
-        <button class="yes" onclick="chooseOption('dinner')">Dinner</button>
-        <button class="yes" onclick="chooseOption('drive')">Drive</button>
-        <button class="yes" onclick="chooseOption('street')">Indian Street Food</button>
+        <button onclick="chooseOption('movie')">Movie</button>
+        <button onclick="chooseOption('coffee')">Coffee</button>
+        <button onclick="chooseOption('dinner')">Dinner</button>
+        <button onclick="chooseOption('drive')">Drive</button>
+        <button onclick="chooseOption('street')">Indian Street Food</button>
       `;
     }
 
-    // Captions for final choice
     const captions = {
-      "IMAX": "Big screen, big feelings.",
-      "3D": "Because flat dates are overrated.",
-      "Indian Film": "Drama, music, and probably some tears.",
-      "Documentary": "We pretend to be intellectual for 90 minutes.",
-      "Animated": "Wholesome chaos and popcorn.",
-      "Horror": "Free hand-holding included.",
-      "Comedy": "If we do not laugh, refund the date.",
-      "Indian": "High spice, higher chemistry.",
-      "Mexican": "Extra guac, extra flirting.",
-      "Pizza": "Serious discussion: pineapple or no.",
-      "Italian": "Pasta, wine, and unreasonably long eye contact.",
-      "Brazilian": "Caffeine plus chaos.",
-      "Mocha": "Chocolate and bad decisions.",
-      "Dry Roast": "Dark, intense, a little dramatic.",
-      "Colombian": "Strong coffee, stronger vibes.",
-      "Beach": "Sand, sunset, and slightly awkward photos.",
-      "Hilltop": "Great view, even better company.",
-      "City Lights": "Late-night walk, main-character energy.",
-      "Surprise": "You say yes, I plan the chaos.",
-      "Momo": "Soft on the outside, spicy on the inside. Like us.",
-      "Pani Puri": "Perfect pick for a brave heart.",
-      "Bhel": "Crunchy, messy, and fun. Like this date.",
-      "Pav Bhaji": "Butter, carbs, and chemistry.",
-      "Misal Pav": "Spicy enough to blame the blush.",
-      "Vada Pav": "Mumbai classic, chaos guaranteed."
+      "IMAX": "Large screen.",
+      "3D": "Three-dimensional experience.",
+      "Indian Film": "Drama and story.",
+      "Documentary": "Informative.",
+      "Animated": "Light and creative.",
+      "Horror": "Intense atmosphere.",
+      "Comedy": "Light mood.",
+      "Indian": "Spicy food.",
+      "Mexican": "Flavourful.",
+      "Pizza": "Simple meal.",
+      "Italian": "Classic dining.",
+      "Brazilian": "Strong coffee.",
+      "Mocha": "Chocolate blend.",
+      "Dry Roast": "Bold taste.",
+      "Colombian": "Rich scent.",
+      "Beach": "Open space.",
+      "Hilltop": "High viewpoint.",
+      "City Lights": "Urban setting.",
+      "Surprise": "Unknown destination.",
+      "Momo": "Steamed dumpling.",
+      "Pani Puri": "Perfect choice.",
+      "Bhel": "Perfect choice.",
+      "Pav Bhaji": "Perfect choice.",
+      "Misal Pav": "Perfect choice.",
+      "Vada Pav": "Perfect choice."
     };
 
     function chooseOption(choice) {
@@ -361,13 +397,12 @@
       }
 
       subOptionsEl.innerHTML =
-        `<h3>Pick the exact plan</h3>` +
-        list.map(o => `<button class="yes" onclick="finalize('${o}')">${o}</button>`).join("");
+        "<h3>Select an option</h3>" +
+        list.map(o => `<button onclick="finalize('${o}')">${o}</button>`).join("");
     }
 
     function finalize(choice) {
       const caption = captions[choice] || "";
-
       finalBox.classList.remove("hidden");
       finalBox.innerHTML = `
         <h3>Date confirmed: ${choice}</h3>
@@ -379,6 +414,7 @@
       modalCaption.textContent = caption;
       modal.classList.remove("hidden");
 
+      // Send realtime notification to Firebase for the sender
       sendNotification(from, choice, caption);
     }
 
@@ -386,26 +422,53 @@
       modal.classList.add("hidden");
     }
 
-    // EmailJS notification
+    // ---------- Firebase notification logic ----------
     function sendNotification(fromName, choice, caption) {
-      const templateParams = {
-        email: RECIPIENT_EMAIL,        // must match {{email}} in EmailJS template
-        from_name: fromName || "Someone",
-        plan: choice,                  // {{plan}} in template
-        message: caption               // {{message}} in template
+      const channel = window.currentChannel;
+      if (!channel) {
+        console.log("No channel in URL; cannot notify sender.");
+        return;
+      }
+
+      const payload = {
+        from: fromName || "Someone",
+        choice: choice,
+        caption: caption,
+        time: Date.now()
       };
 
-      emailjs
-        .send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-        .then(() => {
-          console.log("Email sent successfully");
-        })
-        .catch((error) => {
-          console.error("Email failed", error);
+      db.ref("date_notifications/" + channel).push(payload);
+    }
+
+    function startNotificationListener(channel) {
+      if (!channel || listenerStarted) return;
+      listenerStarted = true;
+
+      db.ref("date_notifications/" + channel)
+        .limitToLast(1)
+        .on("child_added", snapshot => {
+          const data = snapshot.val() || {};
+          const who = data.from || "Your date";
+          const plan = data.choice || "a plan";
+          const note = data.caption ? "Note: " + data.caption : "";
+
+          senderText.textContent = `${who} confirmed ${plan}. ${note}`;
+          senderModal.classList.remove("hidden");
         });
     }
 
+    function closeSenderModal() {
+      senderModal.classList.add("hidden");
+    }
+
+    // ---------- Bootstrapping ----------
     initializeInvite();
+
+    // If the page is opened with only channel in URL and no "from",
+    // treat this as a pure listener view (optional)
+    if (!from && channelFromUrl) {
+      startNotificationListener(channelFromUrl);
+    }
   </script>
 </body>
 </html>
