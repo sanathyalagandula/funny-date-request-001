@@ -227,248 +227,269 @@
   </div>
 
   <script>
-    // ---------- Firebase setup ----------
-    const firebaseConfig = {
-      apiKey: "AIzaSyDCx7mIdrnJCMH_wZZAMd-C7ISz8RZzfhc",
-      authDomain: "date-invite-171cf.firebaseapp.com",
-      databaseURL: "https://date-invite-171cf-default-rtdb.firebaseio.com",
-      projectId: "date-invite-171cf",
-      storageBucket: "date-invite-171cf.appspot.com",
-      messagingSenderId: "896697602494",
-      appId: "1:896697602494:web:116a1108dce5db23aa9e9f",
-      measurementId: "G-97BCRFQCDBP"
+   <script>
+  // ---------- Firebase setup ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyDCx7mIdrnJCMH_wZZAMd-C7ISz8RZzfhc",
+    authDomain: "date-invite-171cf.firebaseapp.com",
+    databaseURL: "https://date-invite-171cf-default-rtdb.firebaseio.com",
+    projectId: "date-invite-171cf",
+    storageBucket: "date-invite-171cf.appspot.com",
+    messagingSenderId: "896697602494",
+    appId: "1:896697602494:web:116a1108dce5db23aa9e9f",
+    measurementId: "G-97BCRFQCDBP"
+  };
+
+  console.log("Initializing Firebase");
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // ---------- Global state ----------
+  const params = new URLSearchParams(window.location.search);
+  const from = params.get("from");
+  const channelFromUrl = params.get("channel");
+  window.currentChannel = channelFromUrl || null;   // used by receiver when sending
+
+  const inviteCard = document.getElementById("inviteCard");
+  const crushCard = document.getElementById("crushCard");
+  const inviteTitle = document.getElementById("inviteTitle");
+  const questionEl = document.getElementById("question");
+  const optionsEl = document.getElementById("options");
+  const subOptionsEl = document.getElementById("suboptions");
+  const finalBox = document.getElementById("finalBox");
+
+  const modal = document.getElementById("confirmModal");
+  const modalFrom = document.getElementById("modalFrom");
+  const modalPlan = document.getElementById("modalPlan");
+  const modalCaption = document.getElementById("modalCaption");
+
+  const senderModal = document.getElementById("senderModal");
+  const senderText = document.getElementById("senderText");
+
+  let listenerStarted = false;
+
+  // ---------- Invite initialization ----------
+  function initializeInvite() {
+    console.log("initializeInvite, from =", from, "channel =", channelFromUrl);
+    if (from) {
+      // Receiver view
+      inviteCard.classList.add("hidden");
+      crushCard.classList.remove("hidden");
+      inviteTitle.textContent = (from || "Someone") + " would like to invite you on a date";
+    }
+  }
+
+  // ---------- Link generation (sender) ----------
+  function generateLink() {
+    const name = document.getElementById("nameInput").value.trim();
+    if (!name) {
+      alert("Please enter your name first!");
+      return;
+    }
+
+    // Unique channel for this invite
+    const channel = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2, 10);
+
+    window.notificationChannel = channel;
+    console.log("Generated channel for invite:", channel);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("from", name);
+    url.searchParams.set("channel", channel);
+
+    const generatedLink = url.toString();
+    window.generatedInviteLink = generatedLink;
+
+    const linkBox = document.getElementById("linkBox");
+    linkBox.classList.remove("hidden");
+    linkBox.innerHTML = `
+      <p>Share this link with your crush</p>
+      <input id="inviteLinkInput" type="text" value="${generatedLink}" readonly>
+      <br/>
+      <button class="yes" onclick="copyInviteLink()">Copy link</button>
+    `;
+
+    // Start listening for replies for this channel
+    startNotificationListener(channel);
+  }
+
+  function copyInviteLink() {
+    const input = document.getElementById("inviteLinkInput");
+    if (!input) return;
+    input.focus();
+    input.select();
+    try {
+      document.execCommand("copy");
+      console.log("Invite link copied");
+    } catch (e) {
+      console.log("Copy failed", e);
+    }
+    window.getSelection().removeAllRanges();
+  }
+
+  // ---------- Receiver "No" persuasion ----------
+  const noMessages = [
+    "Are you sure",
+    "Still no",
+    "Reconsider",
+    "Take a long breath and try again",
+    "Think again",
+    "This is a good idea",
+    "Give it another thought"
+  ];
+  let noCount = 0;
+
+  function handleNo() {
+    questionEl.textContent = noMessages[noCount % noMessages.length];
+    noCount++;
+  }
+
+  // ---------- Receiver "Yes" flow ----------
+  function handleYes() {
+    questionEl.textContent = "Choose how we should go out";
+    document.getElementById("buttons").classList.add("hidden");
+    optionsEl.classList.remove("hidden");
+    optionsEl.innerHTML = `
+      <button onclick="chooseOption('movie')">Movie</button>
+      <button onclick="chooseOption('coffee')">Coffee</button>
+      <button onclick="chooseOption('dinner')">Dinner</button>
+      <button onclick="chooseOption('drive')">Drive</button>
+      <button onclick="chooseOption('street')">Indian Street Food</button>
+    `;
+  }
+
+  const captions = {
+    "IMAX": "Large screen.",
+    "3D": "Three-dimensional experience.",
+    "Indian Film": "Drama and story.",
+    "Documentary": "Informative.",
+    "Animated": "Light and creative.",
+    "Horror": "Intense atmosphere.",
+    "Comedy": "Light mood.",
+    "Indian": "Spicy food.",
+    "Mexican": "Flavourful.",
+    "Pizza": "Simple meal.",
+    "Italian": "Classic dining.",
+    "Brazilian": "Strong coffee.",
+    "Mocha": "Chocolate blend.",
+    "Dry Roast": "Bold taste.",
+    "Colombian": "Rich scent.",
+    "Beach": "Open space.",
+    "Hilltop": "High viewpoint.",
+    "City Lights": "Urban setting.",
+    "Surprise": "Unknown destination.",
+    "Momo": "Steamed dumpling.",
+    "Pani Puri": "Perfect choice.",
+    "Bhel": "Perfect choice.",
+    "Pav Bhaji": "Perfect choice.",
+    "Misal Pav": "Perfect choice.",
+    "Vada Pav": "Perfect choice."
+  };
+
+  function chooseOption(choice) {
+    subOptionsEl.classList.remove("hidden");
+    let list = [];
+
+    if (choice === "movie") {
+      list = ["IMAX", "3D", "Indian Film", "Documentary", "Animated", "Horror", "Comedy"];
+    } else if (choice === "dinner") {
+      list = ["Indian", "Mexican", "Pizza", "Italian"];
+    } else if (choice === "coffee") {
+      list = ["Brazilian", "Mocha", "Dry Roast", "Colombian"];
+    } else if (choice === "drive") {
+      list = ["Beach", "Hilltop", "City Lights", "Surprise"];
+    } else if (choice === "street") {
+      list = ["Momo", "Pani Puri", "Bhel", "Pav Bhaji", "Misal Pav", "Vada Pav"];
+    }
+
+    subOptionsEl.innerHTML =
+      "<h3>Select an option</h3>" +
+      list.map(o => `<button onclick="finalize('${o}')">${o}</button>`).join("");
+  }
+
+  function finalize(choice) {
+    const caption = captions[choice] || "";
+    finalBox.classList.remove("hidden");
+    finalBox.innerHTML = `
+      <h3>Date confirmed: ${choice}</h3>
+      <p>${caption}</p>
+    `;
+
+    modalFrom.textContent = "From: " + (from || "Someone");
+    modalPlan.textContent = "Plan: " + choice;
+    modalCaption.textContent = caption;
+    modal.classList.remove("hidden");
+
+    console.log("Receiver finalized choice", choice, "channel:", window.currentChannel);
+    sendNotification(from, choice, caption);
+  }
+
+  function closeModal() {
+    modal.classList.add("hidden");
+  }
+
+  // ---------- Firebase notification logic ----------
+  function sendNotification(fromName, choice, caption) {
+    const channel = window.currentChannel;
+    if (!channel) {
+      console.log("No channel in URL; cannot notify sender.");
+      return;
+    }
+
+    const payload = {
+      from: fromName || "Someone",
+      choice: choice,
+      caption: caption,
+      time: Date.now()
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    console.log("Sending notification to channel", channel, payload);
 
-    // ---------- Global state ----------
-    const params = new URLSearchParams(window.location.search);
-    const from = params.get("from");
-    const channelFromUrl = params.get("channel");
-    window.currentChannel = channelFromUrl || null;   // used by receiver when sending
+    db.ref("date_notifications/" + channel).push(payload)
+      .then(() => console.log("Notification written to Firebase"))
+      .catch(err => console.error("Firebase write error", err));
+  }
 
-    const inviteCard = document.getElementById("inviteCard");
-    const crushCard = document.getElementById("crushCard");
-    const inviteTitle = document.getElementById("inviteTitle");
-    const questionEl = document.getElementById("question");
-    const optionsEl = document.getElementById("options");
-    const subOptionsEl = document.getElementById("suboptions");
-    const finalBox = document.getElementById("finalBox");
-
-    const modal = document.getElementById("confirmModal");
-    const modalFrom = document.getElementById("modalFrom");
-    const modalPlan = document.getElementById("modalPlan");
-    const modalCaption = document.getElementById("modalCaption");
-
-    const senderModal = document.getElementById("senderModal");
-    const senderText = document.getElementById("senderText");
-
-    let listenerStarted = false;
-
-    // ---------- Invite initialization ----------
-    function initializeInvite() {
-      if (from) {
-        // Receiver view
-        inviteCard.classList.add("hidden");
-        crushCard.classList.remove("hidden");
-        inviteTitle.textContent = (from || "Someone") + " would like to invite you on a date";
-      }
+  function startNotificationListener(channel) {
+    if (!channel) {
+      console.log("startNotificationListener called with no channel");
+      return;
     }
-
-    // ---------- Link generation (sender) ----------
-    function generateLink() {
-      const name = document.getElementById("nameInput").value.trim();
-      if (!name) return;
-
-      // Unique channel for this invite so notifications are not mixed
-      const channel = (window.crypto && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : Math.random().toString(36).slice(2, 10);
-
-      window.notificationChannel = channel; // for sender listener
-
-      const url = new URL(window.location.href);
-      url.searchParams.set("from", name);
-      url.searchParams.set("channel", channel);
-
-      const generatedLink = url.toString();
-      window.generatedInviteLink = generatedLink;
-
-      const linkBox = document.getElementById("linkBox");
-      linkBox.classList.remove("hidden");
-      linkBox.innerHTML = `
-        <p>Share this link with your crush</p>
-        <input id="inviteLinkInput" type="text" value="${generatedLink}" readonly>
-        <br/>
-        <button class="yes" onclick="copyInviteLink()">Copy link</button>
-      `;
-
-      // Start listening for replies for this specific channel
-      startNotificationListener(channel);
+    if (listenerStarted) {
+      console.log("Listener already started");
+      return;
     }
+    listenerStarted = true;
 
-    function copyInviteLink() {
-      const input = document.getElementById("inviteLinkInput");
-      if (!input) return;
-      input.focus();
-      input.select();
-      try {
-        document.execCommand("copy");
-      } catch (e) {
-        console.log("Copy failed", e);
-      }
-      window.getSelection().removeAllRanges();
-    }
+    console.log("Starting listener on channel", channel);
 
-    // ---------- Receiver "No" persuasion ----------
-    const noMessages = [
-      "Are you sure",
-      "Still no",
-      "Reconsider",
-      "Take a long breath and try again",
-      "Think again",
-      "This is a good idea",
-      "Give it another thought"
-    ];
-    let noCount = 0;
+    db.ref("date_notifications/" + channel)
+      .limitToLast(1)
+      .on("child_added", snapshot => {
+        const data = snapshot.val() || {};
+        console.log("New notification received", data);
+        const who = data.from || "Your date";
+        const plan = data.choice || "a plan";
+        const note = data.caption ? "Note: " + data.caption : "";
 
-    function handleNo() {
-      questionEl.textContent = noMessages[noCount % noMessages.length];
-      noCount++;
-    }
+        senderText.textContent = `${who} confirmed ${plan}. ${note}`;
+        senderModal.classList.remove("hidden");
+      }, err => {
+        console.error("Listener error", err);
+      });
+  }
 
-    // ---------- Receiver "Yes" flow ----------
-    function handleYes() {
-      questionEl.textContent = "Choose how we should go out";
-      document.getElementById("buttons").classList.add("hidden");
-      optionsEl.classList.remove("hidden");
-      optionsEl.innerHTML = `
-        <button onclick="chooseOption('movie')">Movie</button>
-        <button onclick="chooseOption('coffee')">Coffee</button>
-        <button onclick="chooseOption('dinner')">Dinner</button>
-        <button onclick="chooseOption('drive')">Drive</button>
-        <button onclick="chooseOption('street')">Indian Street Food</button>
-      `;
-    }
+  function closeSenderModal() {
+    senderModal.classList.add("hidden");
+  }
 
-    const captions = {
-      "IMAX": "Large screen.",
-      "3D": "Three-dimensional experience.",
-      "Indian Film": "Drama and story.",
-      "Documentary": "Informative.",
-      "Animated": "Light and creative.",
-      "Horror": "Intense atmosphere.",
-      "Comedy": "Light mood.",
-      "Indian": "Spicy food.",
-      "Mexican": "Flavourful.",
-      "Pizza": "Simple meal.",
-      "Italian": "Classic dining.",
-      "Brazilian": "Strong coffee.",
-      "Mocha": "Chocolate blend.",
-      "Dry Roast": "Bold taste.",
-      "Colombian": "Rich scent.",
-      "Beach": "Open space.",
-      "Hilltop": "High viewpoint.",
-      "City Lights": "Urban setting.",
-      "Surprise": "Unknown destination.",
-      "Momo": "Steamed dumpling.",
-      "Pani Puri": "Perfect choice.",
-      "Bhel": "Perfect choice.",
-      "Pav Bhaji": "Perfect choice.",
-      "Misal Pav": "Perfect choice.",
-      "Vada Pav": "Perfect choice."
-    };
+  // ---------- Bootstrapping ----------
+  initializeInvite();
 
-    function chooseOption(choice) {
-      subOptionsEl.classList.remove("hidden");
-      let list = [];
-
-      if (choice === "movie") {
-        list = ["IMAX", "3D", "Indian Film", "Documentary", "Animated", "Horror", "Comedy"];
-      } else if (choice === "dinner") {
-        list = ["Indian", "Mexican", "Pizza", "Italian"];
-      } else if (choice === "coffee") {
-        list = ["Brazilian", "Mocha", "Dry Roast", "Colombian"];
-      } else if (choice === "drive") {
-        list = ["Beach", "Hilltop", "City Lights", "Surprise"];
-      } else if (choice === "street") {
-        list = ["Momo", "Pani Puri", "Bhel", "Pav Bhaji", "Misal Pav", "Vada Pav"];
-      }
-
-      subOptionsEl.innerHTML =
-        "<h3>Select an option</h3>" +
-        list.map(o => `<button onclick="finalize('${o}')">${o}</button>`).join("");
-    }
-
-    function finalize(choice) {
-      const caption = captions[choice] || "";
-      finalBox.classList.remove("hidden");
-      finalBox.innerHTML = `
-        <h3>Date confirmed: ${choice}</h3>
-        <p>${caption}</p>
-      `;
-
-      modalFrom.textContent = "From: " + (from || "Someone");
-      modalPlan.textContent = "Plan: " + choice;
-      modalCaption.textContent = caption;
-      modal.classList.remove("hidden");
-
-      // Send realtime notification to Firebase for the sender
-      sendNotification(from, choice, caption);
-    }
-
-    function closeModal() {
-      modal.classList.add("hidden");
-    }
-
-    // ---------- Firebase notification logic ----------
-    function sendNotification(fromName, choice, caption) {
-      const channel = window.currentChannel;
-      if (!channel) {
-        console.log("No channel in URL; cannot notify sender.");
-        return;
-      }
-
-      const payload = {
-        from: fromName || "Someone",
-        choice: choice,
-        caption: caption,
-        time: Date.now()
-      };
-
-      db.ref("date_notifications/" + channel).push(payload);
-    }
-
-    function startNotificationListener(channel) {
-      if (!channel || listenerStarted) return;
-      listenerStarted = true;
-
-      db.ref("date_notifications/" + channel)
-        .limitToLast(1)
-        .on("child_added", snapshot => {
-          const data = snapshot.val() || {};
-          const who = data.from || "Your date";
-          const plan = data.choice || "a plan";
-          const note = data.caption ? "Note: " + data.caption : "";
-
-          senderText.textContent = `${who} confirmed ${plan}. ${note}`;
-          senderModal.classList.remove("hidden");
-        });
-    }
-
-    function closeSenderModal() {
-      senderModal.classList.add("hidden");
-    }
-
-    // ---------- Bootstrapping ----------
-    initializeInvite();
-
-    // If the page is opened with only channel in URL and no "from",
-    // treat this as a pure listener view (optional)
-    if (!from && channelFromUrl) {
-      startNotificationListener(channelFromUrl);
-    }
-  </script>
-</body>
-</html>
+  // Optional: if page opened with only channel (no from), act as pure listener
+  if (!from && channelFromUrl) {
+    startNotificationListener(channelFromUrl);
+  }
+</script>
