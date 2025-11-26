@@ -1,5 +1,5 @@
 "scripts": {
-  "lint": "echo \"Skipping lint\"",
+  "lint": "echo \"No linting\"",
   "serve": "firebase emulators:start --only functions",
   "shell": "firebase functions:shell",
   "start": "npm run shell",
