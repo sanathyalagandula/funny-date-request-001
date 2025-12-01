@@ -174,7 +174,6 @@
       margin: 4px 0;
     }
 
-    /* Sender toast popup */
     #toast {
       position: fixed;
       bottom: 24px;
@@ -256,7 +255,6 @@
       onMessage
     } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-messaging.js";
 
-    // Your existing Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDCx7mIdrnJCMH_wZZAMd-C7IZs8RZzfhc",
       authDomain: "date-invite-171cf.firebaseapp.com",
@@ -272,7 +270,6 @@
     const db = getDatabase(app);
     const messaging = getMessaging(app);
 
-    // 🔑 Your Web Push VAPID key (public)
     const VAPID_KEY =
       "BL82Ai890kV9ismKBLJe_ENJW4igytF8aRym009FnPDNFe95IUtjxZB0jhO1tyLKChn7syz1jRy_twmeCpQ8TSE";
 
@@ -299,54 +296,36 @@
     let toastTimer = null;
     let currentChannelId = channelParam || "";
 
-    // --------------------------
-    // Helper: channel id
-    // --------------------------
     function makeChannelId(base) {
       if (channelParam) return channelParam;
       const cleaned = (base || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
       return cleaned || "default_channel";
     }
 
-    // --------------------------
-    // FCM: init + save token
-    // --------------------------
     async function initPushNotifications(channelId) {
       try {
         const permission = await Notification.requestPermission();
-        if (permission !== "granted") {
-          console.log("Notification permission denied");
-          return;
-        }
+        if (permission !== "granted") return;
 
         const token = await getToken(messaging, {
           vapidKey: VAPID_KEY
         });
-        console.log("FCM token:", token);
 
-        // Save token under fcmTokens/{channelId}
         await set(ref(db, "fcmTokens/" + channelId), {
           token: token,
           updatedAt: Date.now()
         });
-
-        console.log("FCM token saved for channel:", channelId);
       } catch (err) {
         console.error("Error getting FCM token:", err);
       }
     }
 
-    // Foreground messages (when tab is open)
     onMessage(messaging, (payload) => {
-      console.log("📩 FCM foreground message:", payload);
       const title = payload?.notification?.title || "New notification";
       const body = payload?.notification?.body || "";
       showToast(title + " — " + body);
     });
 
-    // --------------------------
-    // UI: toast
-    // --------------------------
     function showToast(message) {
       toast.textContent = message;
       toast.classList.add("show");
@@ -356,9 +335,6 @@
       }, 4000);
     }
 
-    // --------------------------
-    // Live (Realtime DB) notifications
-    // --------------------------
     function startListeningForNotifications(channelId) {
       if (!channelId) return;
       const notificationsRef = ref(db, "date_notifications/" + channelId);
@@ -374,27 +350,19 @@
       });
     }
 
-    // --------------------------
-    // Initial mode (sender / receiver)
-    // --------------------------
     function initializeInvite() {
       if (fromParam) {
-        // Receiver view
         inviteCard.classList.add("hidden");
         crushCard.classList.remove("hidden");
         inviteTitle.textContent =
           (fromParam || "Someone") + " would like to invite you on a date";
         currentChannelId = makeChannelId(fromParam);
       } else {
-        // Sender view
         crushCard.classList.add("hidden");
         inviteCard.classList.remove("hidden");
       }
     }
 
-    // --------------------------
-    // Global functions for inline handlers
-    // --------------------------
     window.generateLink = function () {
       const nameInput = document.getElementById("nameInput");
       const name = nameInput.value.trim();
@@ -416,10 +384,7 @@
       `;
       watchHint.classList.remove("hidden");
 
-      // 🔔 Start live DB notifications
       startListeningForNotifications(currentChannelId);
-
-      // 🔔 Register this browser for FCM push using this channel as id
       initPushNotifications(currentChannelId);
     };
 
@@ -457,98 +422,103 @@
         <button class="yes" onclick="chooseOption('dinner')">Dinner</button>
         <button class="yes" onclick="chooseOption('drive')">Drive</button>
         <button class="yes" onclick="chooseOption('street')">Indian Street Food</button>
+        <button class="yes" onclick="chooseOption('dessert')">Dessert</button>
+        <button class="yes" onclick="chooseOption('drinks')">Drinks</button>
+        <button class="yes" onclick="chooseOption('activities')">Activities</button>
+        <button class="yes" onclick="chooseOption('travel')">Travel</button>
       `;
     };
 
-   const captions = {
-  "IMAX": "Screen kante ne face ekkuva bright.",
-  "3D": "Tum aate hi sab cheezein pop-out ho jaati.",
-  "Indian Film": "Drama? Main hoon. Popcorn? Tum le aana.",
-  "Documentary": "Sach bolun? Naa. Fun bolun? Ha!",
-  "Animated": "Cartoon lantivi kaadu, but something like cartoon",
-  "Horror": "Ghosts run away. You stay.",
-  "Comedy": "Mere jokes sunne ke baad bhi agar haso… tum perfect ho.",
+    const captions = {
+      "IMAX": "Screen kante ne face ekkuva bright.",
+      "3D": "Tum aate hi sab cheezein pop-out ho jaati.",
+      "Indian Film": "Drama? Main hoon. Popcorn? Tum le aana.",
+      "Documentary": "Sach bolun? Naa. Fun bolun? Ha!",
+      "Animated": "Cartoon lantivi kaadu, but something like cartoon",
+      "Horror": "Ghosts run away. You stay.",
+      "Comedy": "Mere jokes sunne ke baad bhi agar haso… tum perfect ho.",
 
-  "Indian": "Mirchi thakkuva avvadu.",
-  "Mexican": "Jaldi khaya toh salsa flying guarantee.",
-  "Pizza": "Thoda cheesy, thoda easy… bilkul ham jaise.",
-  "Italian": "Sauce lo, pasta lo… romance slow flow.",
-  "Brazilian": "Coffee strong… feelings stronger.",
+      "Indian": "Mirchi thakkuva avvadu.",
+      "Mexican": "Jaldi khaya toh salsa flying guarantee.",
+      "Pizza": "Thoda cheesy, thoda easy… bilkul ham jaise.",
+      "Italian": "Sauce lo, pasta lo… romance slow flow.",
+      "Brazilian": "Coffee strong… feelings stronger.",
 
-  "Mocha": "Coffee ka bahana… date ka gana.",
-  "Dry Roast": "Black coffee, black humour, perfect pair.",
-  "Colombian": "Ek sip… aur world tour imagination.",
+      "Mocha": "Coffee ka bahana… date ka gana.",
+      "Dry Roast": "Black coffee, black humour, perfect pair.",
+      "Colombian": "Ek sip… aur world tour imagination.",
 
-  "Beach": "Waves kante manam ekkuva dramatic.",
-  "Hilltop": "Top-lo confession scene compulsory.",
-  "City Lights": "Sheher bhi roshan… jab tum saath ho.",
-  "Surprise": "Plot twist? Nuvve.",
+      "Beach": "Waves kante manam ekkuva dramatic.",
+      "Hilltop": "Top-lo confession scene compulsory.",
+      "City Lights": "Sheher bhi roshan… jab tum saath ho.",
+      "Surprise": "Plot twist? Nuvve.",
 
-  "Momo": "Steamed pockets of happiness.",
-  "Pani Puri": "Crunch, chaos, ekdum perfect.",
-  "Bhel": "Light, tangy, once start ayithe stop ledu.",
-  "Pav Bhaji": "Masakkali mood… full comfort plate.",
-  "Misal Pav": "Spicy ga, energetic ga, proper drama plate.",
-  "Vada Pav": "Mumbai style one-bite attitude.",
+      "Momo": "Steamed pockets of happiness.",
+      "Pani Puri": "Crunch, chaos, ekdum perfect.",
+      "Bhel": "Light, tangy, once start ayithe stop ledu.",
+      "Pav Bhaji": "Masakkali mood… full comfort plate.",
+      "Misal Pav": "Spicy ga, energetic ga, proper drama plate.",
+      "Vada Pav": "Mumbai style one-bite attitude.",
 
-  "Ice Cream": "Chill bite… heart melt. Dangerous combo.",
-  "Brownie": "hot ga untundi… ni alaage.",
-  "Cheesecake": "I know you cant, no to this!",
-  "Gulab Jamun": "vanilla ice cream mustuu",
+      "Ice Cream": "Chill bite… heart melt. Dangerous combo.",
+      "Brownie": "hot ga untundi… ni alaage.",
+      "Cheesecake": "I know you cant, no to this!",
+      "Gulab Jamun": "vanilla ice cream mustuu",
 
-  "Mocktail": "Nijaalu matladukundama?",
-  "Juice": "Sweet ga untadi, enduku ante chakkara vestaru",
-  "Bubble Tea": "Cute ani anukoku, cuz ni kanna cute kadu.",
-  "Lassi": "lassi? enduku veedi chesinda?",
+      "Mocktail": "Nijaalu matladukundama?",
+      "Juice": "Sweet ga untadi, enduku ante chakkara vestaru",
+      "Bubble Tea": "Cute ani anukoku, cuz ni kanna cute kadu.",
+      "Lassi": "lassi? enduku veedi chesinda?",
 
-  "Long Drive": "Long drive? road kanna dangerous ga nuvvu untav kada.",
-  "Walk": "chethulu rendu jaabilo petukoni, ekkadiko veldam.",
-  "Movie Night": "Nuvu movie chudu, nenu mataram ninnu chustha!",
-  "Game Night": "Game aa? cheat cheste nenu catch chestha.",
-  "Cooking Together": "Cooking? IDk how to cook.",
-  "Window Shopping": "Chuddam anthe, JK.",
-  "Bookstore Visit": "John Girisham Novels ante naku chala istam.",
+      "Long Drive": "Long drive? road kanna dangerous ga nuvvu untav kada.",
+      "Walk": "chethulu rendu jaabilo petukoni, ekkadiko veldam.",
+      "Movie Night": "Nuvu movie chudu, nenu mataram ninnu chustha!",
+      "Game Night": "Game aa? cheat cheste nenu catch chestha.",
+      "Cooking Together": "Cooking? IDk how to cook.",
+      "Window Shopping": "Chuddam anthe, JK.",
+      "Bookstore Visit": "John Girisham Novels ante naku chala istam.",
 
-  "Metro": "Crowd lo chemistry.",
-  "Kidnap Style": "Just kidding... maybe."
-};
+      "Metro": "Crowd lo chemistry.",
+      "Kidnap Style": "Just kidding... maybe."
+    };
 
-window.chooseOption = function (choice) {
-  subOptionsEl.classList.remove("hidden");
-  let list = [];
+    window.chooseOption = function (choice) {
+      subOptionsEl.classList.remove("hidden");
+      let list = [];
 
-  if (choice === "movie") {
-    list = ["IMAX", "3D", "Indian Film", "Documentary", "Animated", "Horror", "Comedy"];
-  } else if (choice === "dinner") {
-    list = ["Indian", "Mexican", "Pizza", "Italian"];
-  } else if (choice === "coffee") {
-    list = ["Brazilian", "Mocha", "Dry Roast", "Colombian"];
-  } else if (choice === "drive") {
-    list = ["Beach", "Hilltop", "City Lights", "Surprise"];
-  } else if (choice === "street") {
-    list = ["Momo", "Pani Puri", "Bhel", "Pav Bhaji", "Misal Pav", "Vada Pav"];
-  } else if (choice === "dessert") {
-    list = ["Ice Cream", "Brownie", "Cheesecake", "Gulab Jamun"];
-  } else if (choice === "drinks") {
-    list = ["Mocktail", "Juice", "Bubble Tea", "Lassi"];
-  } else if (choice === "activities") {
-    list = ["Long Drive", "Walk", "Movie Night", "Game Night", "Cooking Together", "Window Shopping", "Bookstore Visit"];
-  } else if (choice === "travel") {
-    list = ["Walk", "Metro", "Kidnap Style"];
-  }
-
-  subOptionsEl.innerHTML =
-    `<h3>Select an option</h3>` +
-    list
-      .map(o => `<button class="yes" onclick="finalize('${o}')">${o}</button>`)
-      .join("");
-};
-
-
+      if (choice === "movie") {
+        list = ["IMAX", "3D", "Indian Film", "Documentary", "Animated", "Horror", "Comedy"];
+      } else if (choice === "dinner") {
+        list = ["Indian", "Mexican", "Pizza", "Italian"];
+      } else if (choice === "coffee") {
+        list = ["Brazilian", "Mocha", "Dry Roast", "Colombian"];
+      } else if (choice === "drive") {
+        list = ["Beach", "Hilltop", "City Lights", "Surprise"];
+      } else if (choice === "street") {
+        list = ["Momo", "Pani Puri", "Bhel", "Pav Bhaji", "Misal Pav", "Vada Pav"];
+      } else if (choice === "dessert") {
+        list = ["Ice Cream", "Brownie", "Cheesecake", "Gulab Jamun"];
+      } else if (choice === "drinks") {
+        list = ["Mocktail", "Juice", "Bubble Tea", "Lassi"];
+      } else if (choice === "activities") {
+        list = [
+          "Long Drive",
+          "Walk",
+          "Movie Night",
+          "Game Night",
+          "Cooking Together",
+          "Window Shopping",
+          "Bookstore Visit"
+        ];
+      } else if (choice === "travel") {
+        list = ["Walk", "Metro", "Kidnap Style"];
+      }
 
       subOptionsEl.innerHTML =
         `<h3>Select an option</h3>` +
-        list.map(o => `<button class="yes" onclick="finalize('${o}')">${o}</button>`).join("");
+        list
+          .map(o => `<button class="yes" onclick="finalize('${o}')">${o}</button>`)
+          .join("");
     };
 
     window.finalize = function (choice) {
