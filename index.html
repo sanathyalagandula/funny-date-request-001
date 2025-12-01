@@ -460,49 +460,87 @@
       `;
     };
 
-    const captions = {
-      "IMAX": "Large screen.",
-      "3D": "Three-dimensional experience.",
-      "Indian Film": "Drama and story.",
-      "Documentary": "Informative.",
-      "Animated": "Light and creative.",
-      "Horror": "Intense atmosphere.",
-      "Comedy": "Light mood.",
-      "Indian": "Spicy food.",
-      "Mexican": "Flavourful.",
-      "Pizza": "Simple meal.",
-      "Italian": "Classic dining.",
-      "Brazilian": "Strong coffee.",
-      "Mocha": "Chocolate blend.",
-      "Dry Roast": "Bold taste.",
-      "Colombian": "Rich scent.",
-      "Beach": "Open space.",
-      "Hilltop": "High viewpoint.",
-      "City Lights": "Urban setting.",
-      "Surprise": "Unknown destination.",
-      "Momo": "Steamed dumpling.",
-      "Pani Puri": "Perfect choice.",
-      "Bhel": "Perfect choice.",
-      "Pav Bhaji": "Perfect choice.",
-      "Misal Pav": "Perfect choice.",
-      "Vada Pav": "Perfect choice."
-    };
+   const captions = {
+  "IMAX": "Screen kante ne face ekkuva bright.",
+  "3D": "Tum aate hi sab cheezein pop-out ho jaati.",
+  "Indian Film": "Drama? Main hoon. Popcorn? Tum le aana.",
+  "Documentary": "Sach bolun? Naa. Fun bolun? Ha!",
+  "Animated": "Cartoon lantivi kaadu, but something like cartoon",
+  "Horror": "Ghosts run away. You stay.",
+  "Comedy": "Mere jokes sunne ke baad bhi agar haso… tum perfect ho.",
 
-    window.chooseOption = function (choice) {
-      subOptionsEl.classList.remove("hidden");
-      let list = [];
+  "Indian": "Mirchi thakkuva avvadu.",
+  "Mexican": "Jaldi khaya toh salsa flying guarantee.",
+  "Pizza": "Thoda cheesy, thoda easy… bilkul ham jaise.",
+  "Italian": "Sauce lo, pasta lo… romance slow flow.",
+  "Brazilian": "Coffee strong… feelings stronger.",
 
-      if (choice === "movie") {
-        list = ["IMAX", "3D", "Indian Film", "Documentary", "Animated", "Horror", "Comedy"];
-      } else if (choice === "dinner") {
-        list = ["Indian", "Mexican", "Pizza", "Italian"];
-      } else if (choice === "coffee") {
-        list = ["Brazilian", "Mocha", "Dry Roast", "Colombian"];
-      } else if (choice === "drive") {
-        list = ["Beach", "Hilltop", "City Lights", "Surprise"];
-      } else if (choice === "street") {
-        list = ["Momo", "Pani Puri", "Bhel", "Pav Bhaji", "Misal Pav", "Vada Pav"];
-      }
+  "Mocha": "Coffee ka bahana… date ka gana.",
+  "Dry Roast": "Black coffee, black humour, perfect pair.",
+  "Colombian": "Ek sip… aur world tour imagination.",
+
+  "Beach": "Waves kante manam ekkuva dramatic.",
+  "Hilltop": "Top-lo confession scene compulsory.",
+  "City Lights": "Sheher bhi roshan… jab tum saath ho.",
+  "Surprise": "Plot twist? Nuvve.",
+
+  "Momo": "Steamed pockets of happiness.",
+  "Pani Puri": "Crunch, chaos, ekdum perfect.",
+  "Bhel": "Light, tangy, once start ayithe stop ledu.",
+  "Pav Bhaji": "Masakkali mood… full comfort plate.",
+  "Misal Pav": "Spicy ga, energetic ga, proper drama plate.",
+  "Vada Pav": "Mumbai style one-bite attitude.",
+
+  "Ice Cream": "Chill bite… heart melt. Dangerous combo.",
+  "Brownie": "hot ga untundi… ni alaage.",
+  "Cheesecake": "I know you cant, no to this!",
+  "Gulab Jamun": "vanilla ice cream mustuu",
+
+  "Mocktail": "Nijaalu matladukundama?",
+  "Juice": "Sweet ga untadi, enduku ante chakkara vestaru",
+  "Bubble Tea": "Cute ani anukoku, cuz ni kanna cute kadu.",
+  "Lassi": "lassi? enduku veedi chesinda?",
+
+  "Long Drive": "Long drive? road kanna dangerous ga nuvvu untav kada.",
+  "Walk": "chethulu rendu jaabilo petukoni, ekkadiko veldam.",
+  "Movie Night": "Nuvu movie chudu, nenu mataram ninnu chustha!",
+  "Game Night": "Game aa? cheat cheste nenu catch chestha.",
+  "Cooking Together": "Cooking? IDk how to cook.",
+  "Window Shopping": "Chuddam anthe, JK.",
+  "Bookstore Visit": "John Girisham Novels ante naku chala istam.",
+
+  "Metro": "Crowd lo chemistry.",
+  "Kidnap Style": "Just kidding... maybe."
+};
+
+window.chooseOption = function (choice) {
+  subOptionsEl.classList.remove("hidden");
+  let list = [];
+
+  if (choice === "movie") {
+    list = ["IMAX", "3D", "Indian Film", "Documentary", "Animated", "Horror", "Comedy"];
+  } else if (choice === "dinner") {
+    list = ["Indian", "Mexican", "Pizza", "Italian"];
+  } else if (choice === "coffee") {
+    list = ["Brazilian", "Mocha", "Dry Roast", "Colombian"];
+  } else if (choice === "drive") {
+    list = ["Beach", "Hilltop", "City Lights", "Surprise"];
+  } else if (choice === "street") {
+    list = ["Momo", "Pani Puri", "Bhel", "Pav Bhaji", "Misal Pav", "Vada Pav"];
+  } else if (choice === "dessert") {
+    list = ["Ice Cream", "Brownie", "Cheesecake", "Gulab Jamun"];
+  } else if (choice === "drinks") {
+    list = ["Mocktail", "Juice", "Bubble Tea", "Lassi"];
+  } else if (choice === "activities") {
+    list = ["Long Drive", "Walk", "Movie Night", "Game Night", "Cooking Together", "Window Shopping", "Bookstore Visit"];
+  } else if (choice === "travel") {
+    list = ["Walk", "Metro", "Kidnap Style"];
+  }
+
+  // your existing rendering logic for `list` stays as-is
+  // e.g. regenerate buttons using `captions[key]` for tooltip/text
+};
+
 
       subOptionsEl.innerHTML =
         `<h3>Select an option</h3>` +
