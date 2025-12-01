@@ -537,9 +537,13 @@ window.chooseOption = function (choice) {
     list = ["Walk", "Metro", "Kidnap Style"];
   }
 
-  // your existing rendering logic for `list` stays as-is
-  // e.g. regenerate buttons using `captions[key]` for tooltip/text
+  subOptionsEl.innerHTML =
+    `<h3>Select an option</h3>` +
+    list
+      .map(o => `<button class="yes" onclick="finalize('${o}')">${o}</button>`)
+      .join("");
 };
+
 
 
       subOptionsEl.innerHTML =
