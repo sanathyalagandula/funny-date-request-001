@@ -207,7 +207,7 @@
     <button class="yes" onclick="generateLink()">Generate Invite Link</button>
     <div class="link-box hidden" id="linkBox"></div>
     <p id="watchHint" class="hidden" style="margin-top:16px; font-size:0.85rem; color:#6b7280;">
-      Keep this tab open. When they pick a plan, you will get a live notification here.
+      Share the link. When they open it, this page turns into their view.
     </p>
   </div>
 
@@ -236,47 +236,10 @@
     </div>
   </div>
 
-  <!-- Sender toast popup -->
+  <!-- Local toast -->
   <div id="toast"></div>
 
-  <!-- JS + Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-    import {
-      getDatabase,
-      ref,
-      push,
-      onChildAdded,
-      set
-    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js";
-    import {
-      getMessaging,
-      getToken,
-      onMessage
-    } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-messaging.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDCx7mIdrnJCMH_wZZAMd-C7IZs8RZzfhc",
-      authDomain: "date-invite-171cf.firebaseapp.com",
-      databaseURL: "https://date-invite-171cf-default-rtdb.firebaseio.com",
-      projectId: "date-invite-171cf",
-      storageBucket: "date-invite-171cf.firebasestorage.app",
-      messagingSenderId: "896697602494",
-      appId: "1:896697602494:web:116a110dce5db23aa9ef",
-      measurementId: "G-97BCFQDBP"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const messaging = getMessaging(app);
-
-    const VAPID_KEY =
-      "BL82Ai890kV9ismKBLJe_ENJW4igytF8aRym009FnPDNFe95IUtjxZB0jhO1tyLKChn7syz1jRy_twmeCpQ8TSE";
-
-    const params = new URLSearchParams(window.location.search);
-    const fromParam = params.get("from") || "";
-    const channelParam = params.get("c") || "";
-
+  <script>
     const inviteCard = document.getElementById("inviteCard");
     const crushCard = document.getElementById("crushCard");
     const inviteTitle = document.getElementById("inviteTitle");
@@ -286,7 +249,6 @@
     const finalBox = document.getElementById("finalBox");
     const linkBox = document.getElementById("linkBox");
     const watchHint = document.getElementById("watchHint");
-
     const modal = document.getElementById("confirmModal");
     const modalFrom = document.getElementById("modalFrom");
     const modalPlan = document.getElementById("modalPlan");
@@ -294,37 +256,6 @@
     const toast = document.getElementById("toast");
 
     let toastTimer = null;
-    let currentChannelId = channelParam || "";
-
-    function makeChannelId(base) {
-      if (channelParam) return channelParam;
-      const cleaned = (base || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
-      return cleaned || "default_channel";
-    }
-
-    async function initPushNotifications(channelId) {
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") return;
-
-        const token = await getToken(messaging, {
-          vapidKey: VAPID_KEY
-        });
-
-        await set(ref(db, "fcmTokens/" + channelId), {
-          token: token,
-          updatedAt: Date.now()
-        });
-      } catch (err) {
-        console.error("Error getting FCM token:", err);
-      }
-    }
-
-    onMessage(messaging, (payload) => {
-      const title = payload?.notification?.title || "New notification";
-      const body = payload?.notification?.body || "";
-      showToast(title + " — " + body);
-    });
 
     function showToast(message) {
       toast.textContent = message;
@@ -332,23 +263,11 @@
       if (toastTimer) clearTimeout(toastTimer);
       toastTimer = setTimeout(() => {
         toast.classList.remove("show");
-      }, 4000);
+      }, 3000);
     }
 
-    function startListeningForNotifications(channelId) {
-      if (!channelId) return;
-      const notificationsRef = ref(db, "date_notifications/" + channelId);
-      onChildAdded(notificationsRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-        const summary =
-          (data.from || "Someone") +
-          " picked " +
-          (data.choice || "a plan") +
-          (data.caption ? " — " + data.caption : "");
-        showToast(summary);
-      });
-    }
+    const params = new URLSearchParams(window.location.search);
+    const fromParam = params.get("from") || "";
 
     function initializeInvite() {
       if (fromParam) {
@@ -356,7 +275,6 @@
         crushCard.classList.remove("hidden");
         inviteTitle.textContent =
           (fromParam || "Someone") + " would like to invite you on a date";
-        currentChannelId = makeChannelId(fromParam);
       } else {
         crushCard.classList.add("hidden");
         inviteCard.classList.remove("hidden");
@@ -368,24 +286,18 @@
       const name = nameInput.value.trim();
       if (!name) return;
 
-      currentChannelId = makeChannelId(name);
-
       const url = new URL(window.location.href);
       url.searchParams.set("from", name);
-      url.searchParams.set("c", currentChannelId);
-      window.generatedInviteLink = url.toString();
+      const generatedInviteLink = url.toString();
 
       linkBox.classList.remove("hidden");
       linkBox.innerHTML = `
         <p>Share this link with your crush</p>
-        <input id="inviteLinkInput" type="text" value="${window.generatedInviteLink}" readonly>
+        <input id="inviteLinkInput" type="text" value="${generatedInviteLink}" readonly>
         <br/>
         <button class="yes" onclick="copyInviteLink()">Copy link</button>
       `;
       watchHint.classList.remove("hidden");
-
-      startListeningForNotifications(currentChannelId);
-      initPushNotifications(currentChannelId);
     };
 
     window.copyInviteLink = function () {
@@ -393,7 +305,7 @@
       if (!input) return;
       input.select();
       document.execCommand("copy");
-      showToast("Link copied!");
+      showToast("Link copied");
     };
 
     const noMessages = [
@@ -453,17 +365,17 @@
       "City Lights": "Sheher bhi roshan… jab tum saath ho.",
       "Surprise": "Plot twist? Nuvve.",
 
-      "Momo": "Ishq hai ye, ishq hai ye.",
-      "Pani Puri": "Road side nee thoti Panipuri thintunte.",
+      "Momo": "Steamed pockets of happiness.",
+      "Pani Puri": "Crunch, chaos, ekdum perfect.",
       "Bhel": "Light, tangy, once start ayithe stop ledu.",
-      "Pav Bhaji": "Masakkali, Masakkali.",
-      "Misal Pav": "Spicy ga, oka plate.",
+      "Pav Bhaji": "Masakkali mood… full comfort plate.",
+      "Misal Pav": "Spicy ga, energetic ga, proper drama plate.",
       "Vada Pav": "Mumbai style one-bite attitude.",
 
       "Ice Cream": "Chill bite… heart melt. Dangerous combo.",
       "Brownie": "hot ga untundi… ni alaage.",
       "Cheesecake": "I know you cant, no to this!",
-      "Gulab Jamun": "vanilla ice cream must",
+      "Gulab Jamun": "vanilla ice cream mustuu",
 
       "Mocktail": "Nijaalu matladukundama?",
       "Juice": "Sweet ga untadi, enduku ante chakkara vestaru",
@@ -533,17 +445,6 @@
       modalPlan.textContent = "Plan: " + choice;
       modalCaption.textContent = caption;
       modal.classList.remove("hidden");
-
-      const channelIdToUse = currentChannelId || makeChannelId(fromParam || "someone");
-      const notificationsRef = ref(db, "date_notifications/" + channelIdToUse);
-      push(notificationsRef, {
-        from: fromParam || "Someone",
-        choice,
-        caption,
-        createdAt: Date.now()
-      }).catch((err) => {
-        console.error("Failed to push notification", err);
-      });
     };
 
     window.closeModal = function () {
