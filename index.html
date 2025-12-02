@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fun Date Invite</title>
 
+  <!-- html2canvas for screenshot -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -232,7 +235,7 @@
     <div class="final-box hidden" id="finalBox"></div>
   </div>
 
-  <!-- Receiver confirmation modal -->
+  <!-- Popup: share screenshot -->
   <div id="confirmModal" class="modal hidden">
     <div class="modal-backdrop" onclick="closeModal()"></div>
     <div class="modal-content">
@@ -241,10 +244,9 @@
       <p id="modalPlan"></p>
       <p id="modalCaption"></p>
       <p style="margin-top:10px; font-size:0.9rem;">
-        Now <strong>take a screenshot of this</strong> and
-        <strong>share/copy that screenshot</strong> to them — just like you share the link. 💌
+        Tap the button below to <strong>share this screenshot</strong>.
       </p>
-      <button class="yes" onclick="closeModal()">Got it – I’ll share the screenshot</button>
+      <button class="yes" onclick="shareScreenshot()">Share this screenshot</button>
     </div>
   </div>
 
@@ -295,7 +297,6 @@
     }
 
     function disableAllChoiceButtons() {
-      // disable all choice-related buttons after final selection
       const allButtons = document.querySelectorAll(
         "#buttons button, #options button, #suboptions button"
       );
@@ -304,7 +305,7 @@
       });
     }
 
-    // -------- Sender side --------
+    // ---------- Sender ----------
     window.generateLink = function () {
       const nameInput = document.getElementById("nameInput");
       const name = nameInput.value.trim();
@@ -332,7 +333,7 @@
       showToast("Link copied");
     };
 
-    // -------- Receiver side: Yes/No + fun loop --------
+    // ---------- Receiver: yes / no ----------
     const noMessages = [
       "Are you sure",
       "Still no",
@@ -345,13 +346,13 @@
     let noCount = 0;
 
     window.handleNo = function () {
-      if (hasFinalChoice) return; // ignore after final choice
+      if (hasFinalChoice) return;
       questionEl.textContent = noMessages[noCount % noMessages.length];
       noCount++;
     };
 
     window.handleYes = function () {
-      if (hasFinalChoice) return; // ignore after final choice
+      if (hasFinalChoice) return;
       questionEl.textContent = "Choose how we should go out";
       document.getElementById("buttons").classList.add("hidden");
       optionsEl.classList.remove("hidden");
@@ -368,7 +369,7 @@
       `;
     };
 
-    // -------- Options + captions --------
+    // ---------- Options + captions ----------
     const captions = {
       "IMAX": "Screen kante ne face ekkuva bright.",
       "3D": "Tum aate hi sab cheezein pop-out ho jaati.",
@@ -423,7 +424,7 @@
     };
 
     window.chooseOption = function (choice) {
-      if (hasFinalChoice) return; // ignore after final choice
+      if (hasFinalChoice) return;
 
       subOptionsEl.classList.remove("hidden");
       let list = [];
@@ -463,9 +464,9 @@
           .join("");
     };
 
-    // -------- Final choice + popup to share screenshot --------
+    // ---------- Final choice + popup ----------
     window.finalize = function (choice) {
-      if (hasFinalChoice) return; // only allow first final selection
+      if (hasFinalChoice) return;
       hasFinalChoice = true;
 
       const caption = captions[choice] || "";
@@ -473,9 +474,6 @@
       finalBox.innerHTML = `
         <h3>Date confirmed: ${choice}</h3>
         <p>${caption}</p>
-        <p style="margin-top:8px;font-size:0.9rem;">
-          Now share/copy this <strong>as a screenshot</strong> and send it to them. 📸💌
-        </p>
       `;
 
       modalFrom.textContent = "From: " + (fromParam || "Someone");
@@ -483,11 +481,53 @@
       modalCaption.textContent = caption;
       modal.classList.remove("hidden");
 
-      disableAllChoiceButtons(); // lock all options after first choice
+      disableAllChoiceButtons();
     };
 
     window.closeModal = function () {
       modal.classList.add("hidden");
+    };
+
+    // ---------- Share screenshot ----------
+    window.shareScreenshot = async function () {
+      try {
+        const target = document.querySelector(".card.hidden") ? crushCard : document.querySelector(".card");
+
+        if (!window.html2canvas) {
+          alert("Your device doesn't support automatic screenshots. Please take a screenshot manually and share it.");
+          return;
+        }
+
+        const canvas = await html2canvas(target);
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            alert("Unable to capture screenshot. Please take it manually and share.");
+            return;
+          }
+
+          const file = new File([blob], "date-invite.png", { type: "image/png" });
+
+          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: "My answer 😏",
+              text: "Here’s my date pick!"
+            });
+          } else {
+            // Fallback: download the image, they can share from gallery/files
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "date-invite.png";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            alert("Image saved/downloaded. Now share it as a screenshot from your gallery/files. 💌");
+          }
+        }, "image/png");
+      } catch (e) {
+        console.error(e);
+        alert("Something went wrong. Please just take a screenshot manually and share it. 🫶");
+      }
     };
 
     initializeInvite();
