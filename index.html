@@ -263,6 +263,7 @@
   <div id="toast"></div>
 
   <script>
+  document.addEventListener("DOMContentLoaded", () => {
     const inviteCard = document.getElementById("inviteCard");
     const crushCard = document.getElementById("crushCard");
     const inviteTitle = document.getElementById("inviteTitle");
@@ -318,11 +319,14 @@
     window.generateLink = function () {
       const nameInput = document.getElementById("nameInput");
       const name = nameInput.value.trim();
-      if (!name) return;
+      if (!name) {
+        showToast("Type your name first 😌");
+        return;
+      }
 
-      const url = new URL(window.location.href);
-      url.searchParams.set("from", name);
-      const generatedInviteLink = url.toString();
+      // Build a clean URL without relying on new URL()
+      const base = `${window.location.origin}${window.location.pathname}`;
+      const generatedInviteLink = `${base}?from=${encodeURIComponent(name)}`;
 
       linkBox.classList.remove("hidden");
       linkBox.innerHTML = `
@@ -343,35 +347,35 @@
     };
 
     // ---------- Receiver: yes / no ----------
-  const noMessages = [
-  "Are you sure",
-  "Still no",
-  "Reconsider",
-  "Take a long breath and try again",
-  "Think again",
-  "This is a good idea",
-  "Give it another thought",
-  "Last chance to rethink this",
-  "Your future self disagrees with this",
-  "Try honesty... try again",
-  "Universe says: press yes",
-  "Fate is confused right now",
-  "Come on, plot twist ichuko",
-  "No ante… heart lo buffering",
-  "Just blink and press yes",
-  "Even Google can’t justify this no",
-  "Retry… that’s the right button",
-  "Statistically, yes is better",
-  "Algorithm feels hurt",
-  "Drama tag meedha click cheyyaku",
-  "Look again… hint: it’s yes",
-  "Consider emotional damage",
-  "Final answer? Really?",
-  "Your finger slipped… try again",
-  "Destiny loading… click yes to continue",
-  "Even your phone wants you to say yes",
-  "You’re so close to the right decision",
-];
+    const noMessages = [
+      "Are you sure",
+      "Still no",
+      "Reconsider",
+      "Take a long breath and try again",
+      "Think again",
+      "This is a good idea",
+      "Give it another thought",
+      "Last chance to rethink this",
+      "Your future self disagrees with this",
+      "Try honesty... try again",
+      "Universe says: press yes",
+      "Fate is confused right now",
+      "Come on, plot twist ichuko",
+      "No ante… heart lo buffering",
+      "Just blink and press yes",
+      "Even Google can’t justify this no",
+      "Retry… that’s the right button",
+      "Statistically, yes is better",
+      "Algorithm feels hurt",
+      "Drama tag meedha click cheyyaku",
+      "Look again… hint: it’s yes",
+      "Consider emotional damage",
+      "Final answer? Really?",
+      "Your finger slipped… try again",
+      "Destiny loading… click yes to continue",
+      "Even your phone wants you to say yes",
+      "You’re so close to the right decision",
+    ];
 
     let noCount = 0;
 
@@ -544,7 +548,6 @@
               text: "Here’s my date pick!"
             });
           } else {
-            // Fallback: download the image, they can share from gallery/files
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = "date-invite.png";
@@ -561,6 +564,5 @@
     };
 
     initializeInvite();
-  </script>
-</body>
-</html>
+  });
+</script>
